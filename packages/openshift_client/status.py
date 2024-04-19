@@ -4,33 +4,37 @@ from .model import Missing
 
 
 def is_route_admitted(apiobj):
-    return apiobj.model.status.can_match({
-        'ingress': [
-            {
-                'conditions': [
-                    {
-                        'type': 'Admitted',
-                        'status': 'True',
-                    }
-                ]
-            }
-        ]
-    })
+    return apiobj.model.status.can_match(
+        {
+            "ingress": [
+                {
+                    "conditions": [
+                        {
+                            "type": "Admitted",
+                            "status": "True",
+                        }
+                    ]
+                }
+            ]
+        }
+    )
 
 
 def is_pod_running(apiobj):
-    return apiobj.model.status.phase == 'Running'
+    return apiobj.model.status.phase == "Running"
 
 
 def is_pod_succeeded(apiobj):
-    return apiobj.model.status.phase == 'Succeeded'
+    return apiobj.model.status.phase == "Succeeded"
 
 
 def is_node_ready(apiobj):
-    return apiobj.model.status.conditions.can_match({
-        'type': 'Ready',
-        'status': 'True',
-    })
+    return apiobj.model.status.conditions.can_match(
+        {
+            "type": "Ready",
+            "status": "True",
+        }
+    )
 
 
 def is_operator_ready(operator_apiobj):
@@ -65,7 +69,7 @@ def is_credentialsrequest_provisioned(apiobj):
 
 
 def is_pvc_bound(apiobj):
-    return apiobj.model.status.phase == 'Bound'
+    return apiobj.model.status.phase == "Bound"
 
 
 def is_imagestream_imported(apiobj):
@@ -75,12 +79,5 @@ def is_imagestream_imported(apiobj):
     against the imagestream.
     """
     return not apiobj.model.status.tags.can_match(
-            {
-                'conditions': [
-                    {
-                        'type': 'ImportSuccess',
-                        'status': 'False'
-                    }
-                ]
-            }
+        {"conditions": [{"type": "ImportSuccess", "status": "False"}]}
     )

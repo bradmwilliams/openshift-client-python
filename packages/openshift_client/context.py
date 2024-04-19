@@ -13,14 +13,17 @@ from .result import Result
 DEFAULT_SSH_HOSTNAME = os.getenv("OPENSHIFT_CLIENT_PYTHON_DEFAULT_SSH_HOSTNAME", None)
 DEFAULT_SSH_USERNAME = os.getenv("OPENSHIFT_CLIENT_PYTHON_DEFAULT_SSH_USERNAME", None)
 DEFAULT_SSH_PORT = int(os.getenv("OPENSHIFT_CLIENT_PYTHON_DEFAULT_SSH_PORT", "22"))
-DEFAULT_SSH_AUTO_ADD = os.getenv("OPENSHIFT_CLIENT_PYTHON_DEFAULT_SSH_AUTO_ADD", "false").lower() in (
-"yes", "true", "t", "y", "1")
-DEFAULT_LOAD_SYSTEM_HOST_KEYS = os.getenv("OPENSHIFT_CLIENT_PYTHON_DEFAULT_LOAD_SYSTEM_HOST_KEYS", "true").lower() in (
-"yes", "true", "t", "y", "1")
+DEFAULT_SSH_AUTO_ADD = os.getenv(
+    "OPENSHIFT_CLIENT_PYTHON_DEFAULT_SSH_AUTO_ADD", "false"
+).lower() in ("yes", "true", "t", "y", "1")
+DEFAULT_LOAD_SYSTEM_HOST_KEYS = os.getenv(
+    "OPENSHIFT_CLIENT_PYTHON_DEFAULT_LOAD_SYSTEM_HOST_KEYS", "true"
+).lower() in ("yes", "true", "t", "y", "1")
 
 # If set, --insecure-skip-tls-verify will be included on all oc invocations
-GLOBAL_SKIP_TLS_VERIFY = os.getenv("OPENSHIFT_CLIENT_PYTHON_SKIP_TLS_VERIFY", "false").lower() in (
-"yes", "true", "t", "y", "1")
+GLOBAL_SKIP_TLS_VERIFY = os.getenv(
+    "OPENSHIFT_CLIENT_PYTHON_SKIP_TLS_VERIFY", "false"
+).lower() in ("yes", "true", "t", "y", "1")
 
 # Environment variable can specify generally how long openshift operations can execute before an exception
 MASTER_TIMEOUT = int(os.getenv("OPENSHIFT_CLIENT_PYTHON_MASTER_TIMEOUT", -1))
@@ -61,7 +64,10 @@ class Context(object):
         self.frame_info = None
         for frame in inspect.stack():
             module = inspect.getmodule(frame[0])
-            if module and (module.__name__ == 'openshift_client' or module.__name__.startswith('openshift_client.')):
+            if module and (
+                module.__name__ == "openshift_client"
+                or module.__name__.startswith("openshift_client.")
+            ):
                 # The source appears to be within this module; skip this frame
                 continue
 
@@ -110,8 +116,13 @@ class Context(object):
             if self.ssh_auto_add_host:
                 self.ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-            self.ssh_client.connect(hostname=self.ssh_hostname, port=self.ssh_port, username=self.ssh_username,
-                                    password=self.ssh_password, timeout=self.ssh_timeout)
+            self.ssh_client.connect(
+                hostname=self.ssh_hostname,
+                port=self.ssh_port,
+                username=self.ssh_username,
+                password=self.ssh_password,
+                timeout=self.ssh_timeout,
+            )
 
             # Enable agent fowarding
             transport = self.ssh_client.get_transport()
@@ -325,7 +336,9 @@ class Context(object):
         :return: N/A
         """
         if seconds and seconds > 0:
-            self.timeout_datetime = datetime.now(timezone.utc) + timedelta(seconds=seconds)
+            self.timeout_datetime = datetime.now(timezone.utc) + timedelta(
+                seconds=seconds
+            )
         else:
             self.timeout_datetime = None
 
@@ -379,9 +392,15 @@ def blank():
     return c
 
 
-def client_host(hostname=None, port=DEFAULT_SSH_PORT, username=DEFAULT_SSH_USERNAME, password=None,
-                auto_add_host=DEFAULT_SSH_AUTO_ADD, load_system_host_keys=DEFAULT_LOAD_SYSTEM_HOST_KEYS,
-                connect_timeout=600):
+def client_host(
+    hostname=None,
+    port=DEFAULT_SSH_PORT,
+    username=DEFAULT_SSH_USERNAME,
+    password=None,
+    auto_add_host=DEFAULT_SSH_AUTO_ADD,
+    load_system_host_keys=DEFAULT_LOAD_SYSTEM_HOST_KEYS,
+    connect_timeout=600,
+):
     """
     Will ssh to the specified host to in order to run oc commands. If hostname is not specified,
     the environment variable OPENSHIFT_CLIENT_PYTHON_DEFAULT_SSH_HOSTNAME will be used. If the environment variable is
@@ -403,8 +422,8 @@ def client_host(hostname=None, port=DEFAULT_SSH_PORT, username=DEFAULT_SSH_USERN
     if hostname is None:
         hostname = DEFAULT_SSH_HOSTNAME
 
-    if hostname and '@' in hostname:
-        c.ssh_username, c.ssh_hostname = hostname.split('@', 1)
+    if hostname and "@" in hostname:
+        c.ssh_username, c.ssh_hostname = hostname.split("@", 1)
     else:
         c.ssh_hostname = hostname
         c.ssh_username = username
@@ -503,10 +522,10 @@ def tracking(action_handler=None, limit=None):
     c = Context()
     if action_handler:
         if not callable(action_handler):
-            raise ValueError('Expected action_handler to be callable')
+            raise ValueError("Expected action_handler to be callable")
         c.tracking_strategy = action_handler
     else:
-        c.tracking_strategy = Result('tracking', limit)
+        c.tracking_strategy = Result("tracking", limit)
 
     return c
 
@@ -604,15 +623,29 @@ def timeout(seconds):
 
 class ThreadLocalContext(local):
     def __init__(self):
-        self.default_oc_path = os.getenv("OPENSHIFT_CLIENT_PYTHON_DEFAULT_OC_PATH", "oc")  # Assume oc is in $PATH by default
-        self.default_kubeconfig_path = os.getenv("OPENSHIFT_CLIENT_PYTHON_DEFAULT_CONFIG_PATH", None)
-        self.default_api_server = os.getenv("OPENSHIFT_CLIENT_PYTHON_DEFAULT_API_SERVER", None)
+        self.default_oc_path = os.getenv(
+            "OPENSHIFT_CLIENT_PYTHON_DEFAULT_OC_PATH", "oc"
+        )  # Assume oc is in $PATH by default
+        self.default_kubeconfig_path = os.getenv(
+            "OPENSHIFT_CLIENT_PYTHON_DEFAULT_CONFIG_PATH", None
+        )
+        self.default_api_server = os.getenv(
+            "OPENSHIFT_CLIENT_PYTHON_DEFAULT_API_SERVER", None
+        )
         self.default_token = None  # Does not support environment variable injection to discourage this insecure practice
-        self.default_ca_cert_path = os.getenv("OPENSHIFT_CLIENT_PYTHON_DEFAULT_CA_CERT_PATH", None)
-        self.default_project = os.getenv("OPENSHIFT_CLIENT_PYTHON_DEFAULT_PROJECT", None)
+        self.default_ca_cert_path = os.getenv(
+            "OPENSHIFT_CLIENT_PYTHON_DEFAULT_CA_CERT_PATH", None
+        )
+        self.default_project = os.getenv(
+            "OPENSHIFT_CLIENT_PYTHON_DEFAULT_PROJECT", None
+        )
         self.default_options = {}
-        self.default_loglevel = os.getenv("OPENSHIFT_CLIENT_PYTHON_DEFAULT_OC_LOGLEVEL", None)
-        self.default_skip_tls_verify = os.getenv("OPENSHIFT_CLIENT_PYTHON_DEFAULT_SKIP_TLS_VERIFY", None)
+        self.default_loglevel = os.getenv(
+            "OPENSHIFT_CLIENT_PYTHON_DEFAULT_OC_LOGLEVEL", None
+        )
+        self.default_skip_tls_verify = os.getenv(
+            "OPENSHIFT_CLIENT_PYTHON_DEFAULT_SKIP_TLS_VERIFY", None
+        )
 
         root_context = Context()
         root_context.set_timeout(MASTER_TIMEOUT)

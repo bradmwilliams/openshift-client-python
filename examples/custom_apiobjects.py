@@ -9,14 +9,20 @@ class MyCustomPodClass(APIObject):
         super().__init__(*args, **kwargs)
 
     def super_cool_awesomeness(self):
-        print('Calling: super_cool_awesomeness() on pod: {}/{}'.format(self.model.metadata.namespace, self.model.metadata.name))
+        print(
+            "Calling: super_cool_awesomeness() on pod: {}/{}".format(
+                self.model.metadata.namespace, self.model.metadata.name
+            )
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     with oc.client_host():
-        with oc.project('openshift-monitoring'):
+        with oc.project("openshift-monitoring"):
 
-            objs = oc.selector('pods', labels={'app': 'prometheus'}).objects(cls=MyCustomPodClass)
+            objs = oc.selector("pods", labels={"app": "prometheus"}).objects(
+                cls=MyCustomPodClass
+            )
 
             for obj in objs:
                 print(type(obj))

@@ -34,8 +34,8 @@ do
     if [[ "$line" == "#!"* ]]; then  # Skip the shebang, we write it manually above
         continue
     fi
-    if [[ "$line" == "    REPLACED_BY_REBUILD_MODULE = '{}'" ]]; then
-        echo "    REPLACED_BY_REBUILD_MODULE = '${ENCODED_TGZ}'" >> "${OUTPUT_FILE}"
+    if [[ "$line" == "    REPLACED_BY_REBUILD_MODULE = \"{}\"" ]]; then
+        echo "    REPLACED_BY_REBUILD_MODULE = \"${ENCODED_TGZ}\"" >> "${OUTPUT_FILE}"
         replaced=1
     else
         echo "$line" >> "${OUTPUT_FILE}"

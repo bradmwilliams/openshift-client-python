@@ -62,7 +62,7 @@ def _access_field(val, err_msg, if_missing=_DEFAULT, lowercase=False):
     # (or val == '') included since it has been observed that namespace can be
     # returned from certain API queries as an empty string.
 
-    if val is Missing or val == '':
+    if val is Missing or val == "":
         if if_missing is _DEFAULT:
             raise ModelError(err_msg)
         else:
@@ -74,7 +74,6 @@ def _access_field(val, err_msg, if_missing=_DEFAULT, lowercase=False):
 
 
 class APIObject:
-
     def __init__(self, dict_to_model=None, string_to_model=None, context=None):
 
         if string_to_model is not None:
@@ -86,7 +85,7 @@ class APIObject:
                     "apiVersion": "v1",
                     "kind": "List",
                     "metadata": {},
-                    "items": []
+                    "items": [],
                 }
             elif string_to_model.startswith("{"):
                 dict_to_model = json.loads(string_to_model)
@@ -126,8 +125,12 @@ class APIObject:
         :param lowercase: Whether kind should be returned in lowercase.
         :return: The kind or if_missing.
         """
-        return _access_field(self.model.kind,
-                             "Object model does not contain .kind", if_missing=if_missing, lowercase=lowercase)
+        return _access_field(
+            self.model.kind,
+            "Object model does not contain .kind",
+            if_missing=if_missing,
+            lowercase=lowercase,
+        )
 
     def qkind(self, lowercase=True, if_missing=_DEFAULT):
         """
@@ -137,8 +140,10 @@ class APIObject:
         :param lowercase: Whether kind should be returned in lowercase.
         :return: The kind or if_missing.
         """
-        return '{kind}{group}'.format(kind=self.kind(if_missing=if_missing, lowercase=lowercase),
-                                      group=self.group(prefix_dot=True, if_missing='', lowercase=lowercase))
+        return "{kind}{group}".format(
+            kind=self.kind(if_missing=if_missing, lowercase=lowercase),
+            group=self.group(prefix_dot=True, if_missing="", lowercase=lowercase),
+        )
 
     def apiVersion(self, lowercase=True, if_missing=_DEFAULT):
         """
@@ -148,8 +153,12 @@ class APIObject:
         :param lowercase: Whether kind should be returned in lowercase.
         :return: The kind or if_missing.
         """
-        return _access_field(self.model.apiVersion,
-                             "Object model does not contain .apiVersion", if_missing=if_missing, lowercase=lowercase)
+        return _access_field(
+            self.model.apiVersion,
+            "Object model does not contain .apiVersion",
+            if_missing=if_missing,
+            lowercase=lowercase,
+        )
 
     def group(self, prefix_dot=False, lowercase=True, if_missing=_DEFAULT):
         """
@@ -170,12 +179,12 @@ class APIObject:
                 return if_missing
 
         # Otherwise, we have an apiVersion field to parse
-        if '/' not in apiVersion:
-            return ''
+        if "/" not in apiVersion:
+            return ""
 
-        group = apiVersion.split('/')[0]
+        group = apiVersion.split("/")[0]
         if prefix_dot:
-            return '.{}'.format(group)
+            return ".{}".format(group)
 
         return group
 
@@ -194,9 +203,12 @@ class APIObject:
         :param if_missing: Value to return if uid is not present in Model.
         :return: The name or if_missing.
         """
-        return _access_field(self.model.metadata.uid,
-                             "Object model does not contain .metadata.uid", if_missing=if_missing,
-                             lowercase=False)
+        return _access_field(
+            self.model.metadata.uid,
+            "Object model does not contain .metadata.uid",
+            if_missing=if_missing,
+            lowercase=False,
+        )
 
     def resource_version(self, if_missing=_DEFAULT):
         """
@@ -205,9 +217,12 @@ class APIObject:
         :param if_missing: Value to return if resourceVersion is not present in Model.
         :return: The name or if_missing.
         """
-        return _access_field(self.model.metadata.resourceVersion,
-                             "Object model does not contain .metadata.resourceVersion", if_missing=if_missing,
-                             lowercase=False)
+        return _access_field(
+            self.model.metadata.resourceVersion,
+            "Object model does not contain .metadata.resourceVersion",
+            if_missing=if_missing,
+            lowercase=False,
+        )
 
     def api_version(self, if_missing=_DEFAULT):
         """
@@ -216,9 +231,12 @@ class APIObject:
         :param if_missing: Value to return if apiVersion is not present in Model.
         :return: The name or if_missing.
         """
-        return _access_field(self.model.apiVersion,
-                             "Object model does not contain apiVersion", if_missing=if_missing,
-                             lowercase=False)
+        return _access_field(
+            self.model.apiVersion,
+            "Object model does not contain apiVersion",
+            if_missing=if_missing,
+            lowercase=False,
+        )
 
     def name(self, if_missing=_DEFAULT):
         """
@@ -227,9 +245,12 @@ class APIObject:
         :param if_missing: Value to return if name is not present in Model.
         :return: The name or if_missing.
         """
-        return _access_field(self.model.metadata.name,
-                             "Object model does not contain .metadata.name", if_missing=if_missing,
-                             lowercase=False)
+        return _access_field(
+            self.model.metadata.name,
+            "Object model does not contain .metadata.name",
+            if_missing=if_missing,
+            lowercase=False,
+        )
 
     def namespace(self, if_missing=_DEFAULT):
         """
@@ -238,9 +259,12 @@ class APIObject:
         :param if_missing: Value to return if namespace is not present in Model.
         :return: The namespace or if_missing.
         """
-        return _access_field(self.model.metadata.namespace,
-                             "Object model does not contain .metadata.namespace", if_missing=if_missing,
-                             lowercase=True)
+        return _access_field(
+            self.model.metadata.namespace,
+            "Object model does not contain .metadata.namespace",
+            if_missing=if_missing,
+            lowercase=True,
+        )
 
     def fqname(self):
         """
@@ -248,17 +272,18 @@ class APIObject:
         only to determine if two apiObjects appear to represent the same resource.
         :return: Returns the fully qualified name of the object (ns:apiVersion.kind/name).
         """
-        return '{ns}:{kind}{group}/{name}'.format(ns=self.namespace(if_missing=''),
-                                                  group=self.group(prefix_dot=True),
-                                                  kind=self.kind(),
-                                                  name=self.name()
-                                                  )
+        return "{ns}:{kind}{group}/{name}".format(
+            ns=self.namespace(if_missing=""),
+            group=self.group(prefix_dot=True),
+            kind=self.kind(),
+            name=self.name(),
+        )
 
     def qname(self):
         """
         :return: Returns the qualified name of the object (kind[.group]/name).
         """
-        return self.qkind() + '/' + self.name()
+        return self.qkind() + "/" + self.name()
 
     def _object_def_action(self, verb, auto_raise=True, cmd_args=None):
         """
@@ -274,8 +299,15 @@ class APIObject:
         base_args = list()
         base_args.extend(["-o=name", "-f", "-"])
         result = Result(verb)
-        result.add_action(oc_action(self.context, verb, cmd_args=[base_args, cmd_args],
-                                    stdin_obj=content, namespace=self.namespace(if_missing=None)))
+        result.add_action(
+            oc_action(
+                self.context,
+                verb,
+                cmd_args=[base_args, cmd_args],
+                stdin_obj=content,
+                namespace=self.namespace(if_missing=None),
+            )
+        )
 
         if auto_raise:
             result.fail_if("Error during object {}".format(verb))
@@ -332,8 +364,10 @@ class APIObject:
         :return: A Result object
         :rtype: Result
         """
-        _, action = self.exists(on_exists_func=lambda: self.replace(cmd_args=cmd_args),
-                                on_absent_func=lambda: self.create(cmd_args=cmd_args))
+        _, action = self.exists(
+            on_exists_func=lambda: self.replace(cmd_args=cmd_args),
+            on_absent_func=lambda: self.create(cmd_args=cmd_args),
+        )
 
         return action
 
@@ -343,17 +377,31 @@ class APIObject:
         if describe results in an error.
         :return: Returns a string with the oc describe output of an object.
         """
-        r = Result('describe')
-        r.add_action(oc_action(self.context, "describe", cmd_args=[self.qname()],
-                               namespace=self.namespace(if_missing=None)))
+        r = Result("describe")
+        r.add_action(
+            oc_action(
+                self.context,
+                "describe",
+                cmd_args=[self.qname()],
+                namespace=self.namespace(if_missing=None),
+            )
+        )
 
         if auto_raise:
-            r.fail_if('Error describing object')
+            r.fail_if("Error describing object")
 
-        return (r.out() + '\n' + r.err()).strip()
+        return (r.out() + "\n" + r.err()).strip()
 
-    def logs(self, timestamps=False, previous=False, since=None, limit_bytes=None, tail=-1, cmd_args=None,
-             try_longshots=True):
+    def logs(
+        self,
+        timestamps=False,
+        previous=False,
+        since=None,
+        limit_bytes=None,
+        tail=-1,
+        cmd_args=None,
+        try_longshots=True,
+    ):
         """
         Attempts to collect logs from running pods associated with this resource. Supports
         daemonset, statefulset, deploymentconfig, deployment, replicationcontroller, replicationset,
@@ -385,58 +433,68 @@ class APIObject:
         def add_entry(collection, entry_key, action):
             entry = action.out
             if action.status != 0:
-                entry += u'\n>>>>Error during log collection rc={}<<<<\n{}\n'.format(action.status, action.err)
-            entry = entry.strip().replace('\r\n', '\n')
+                entry += "\n>>>>Error during log collection rc={}<<<<\n{}\n".format(
+                    action.status, action.err
+                )
+            entry = entry.strip().replace("\r\n", "\n")
             collection[entry_key] = entry
 
         base_args = list()
 
         if previous:
-            base_args.append('-p')
+            base_args.append("-p")
 
         if since:
-            base_args.append('--since={}'.format(since))
+            base_args.append("--since={}".format(since))
 
         if limit_bytes:
-            base_args.append('--limit-bytes={}'.format(limit_bytes))
+            base_args.append("--limit-bytes={}".format(limit_bytes))
 
         if timestamps:
-            base_args.append('--timestamps')
+            base_args.append("--timestamps")
 
-        base_args.append('--tail={}'.format(tail))
+        base_args.append("--tail={}".format(tail))
 
         pod_list = []
 
-        if kind_matches(self.kind(), 'pod'):
+        if kind_matches(self.kind(), "pod"):
             pod_list.append(self)
 
-        elif kind_matches(self.kind(), ['ds', 'statefulset']):
-            pod_list.extend(self.get_owned('pod'))
+        elif kind_matches(self.kind(), ["ds", "statefulset"]):
+            pod_list.extend(self.get_owned("pod"))
 
-        elif kind_matches(self.kind(), 'deployment'):
-            for rs in self.get_owned('rs'):
-                pod_list.extend(rs.get_owned('pod'))
+        elif kind_matches(self.kind(), "deployment"):
+            for rs in self.get_owned("rs"):
+                pod_list.extend(rs.get_owned("pod"))
 
-        elif kind_matches(self.kind(), 'dc'):
-            for rc in self.get_owned('rc'):
-                pod_list.extend(rc.get_owned('pod'))
+        elif kind_matches(self.kind(), "dc"):
+            for rc in self.get_owned("rc"):
+                pod_list.extend(rc.get_owned("pod"))
 
-        elif kind_matches(self.kind(), ['rs', 'rc']):
-            pod_list.extend(self.get_owned('pod'))
+        elif kind_matches(self.kind(), ["rs", "rc"]):
+            pod_list.extend(self.get_owned("pod"))
 
-        elif kind_matches(self.kind(), ['bc', 'build']):
-            action = oc_action(self.context, "logs", cmd_args=[base_args, cmd_args, self.qname()],
-                               namespace=self.namespace(if_missing=None))
+        elif kind_matches(self.kind(), ["bc", "build"]):
+            action = oc_action(
+                self.context,
+                "logs",
+                cmd_args=[base_args, cmd_args, self.qname()],
+                namespace=self.namespace(if_missing=None),
+            )
             add_entry(log_aggregation, self.fqname(), action)
 
         else:
             if try_longshots:
                 # If the kind directly owns pods, we can find the logs for it
-                pod_list.extend(self.get_owned('pod'))
+                pod_list.extend(self.get_owned("pod"))
                 if not pod_list:
                     # Just try to collect logs and see what happens
-                    action = oc_action(self.context, "logs", cmd_args=[base_args, cmd_args, self.qname()],
-                                       namespace=self.namespace(if_missing=None))
+                    action = oc_action(
+                        self.context,
+                        "logs",
+                        cmd_args=[base_args, cmd_args, self.qname()],
+                        namespace=self.namespace(if_missing=None),
+                    )
                     add_entry(log_aggregation, self.fqname(), action)
                 else:
                     # We don't recognize kind and we aren't taking longshots.
@@ -444,28 +502,54 @@ class APIObject:
 
         for pod in pod_list:
             for container in pod.model.spec.containers:
-                action = oc_action(self.context, "logs",
-                                   cmd_args=[base_args, cmd_args, pod.qname(), '-c', container.name,
-                                             '--namespace={}'.format(pod.namespace())],
-                                   no_namespace=True  # Namespace is included in cmd_args, do not use context
-                                   )
+                action = oc_action(
+                    self.context,
+                    "logs",
+                    cmd_args=[
+                        base_args,
+                        cmd_args,
+                        pod.qname(),
+                        "-c",
+                        container.name,
+                        "--namespace={}".format(pod.namespace()),
+                    ],
+                    no_namespace=True,  # Namespace is included in cmd_args, do not use context
+                )
                 # Include self.fqname() to let reader know how we actually found this pod (e.g. from a dc).
-                key = '{}->{}({})'.format(self.fqname(), pod.qname(), container.name)
+                key = "{}->{}({})".format(self.fqname(), pod.qname(), container.name)
                 add_entry(log_aggregation, key, action)
 
         return log_aggregation
 
-    def print_logs(self, stream=sys.stderr, timestamps=False, previous=False, since=None, limit_bytes=None, tail=-1,
-                   cmd_args=None, try_longshots=True):
+    def print_logs(
+        self,
+        stream=sys.stderr,
+        timestamps=False,
+        previous=False,
+        since=None,
+        limit_bytes=None,
+        tail=-1,
+        cmd_args=None,
+        try_longshots=True,
+    ):
         """
         Pretty prints logs from selected objects to an output stream (see logs() method).
         :param stream: Output stream to send pretty printed report (defaults to sys.stderr)..
         :param cmd_args: An optional list of additional arguments to pass on the command line
         :return: n/a
         """
-        util.print_logs(stream,
-                        self.logs(timestamps=timestamps, previous=previous, since=since, limit_bytes=limit_bytes,
-                                  tail=tail, try_longshots=try_longshots, cmd_args=cmd_args))
+        util.print_logs(
+            stream,
+            self.logs(
+                timestamps=timestamps,
+                previous=previous,
+                since=since,
+                limit_bytes=limit_bytes,
+                tail=tail,
+                try_longshots=try_longshots,
+                cmd_args=cmd_args,
+            ),
+        )
 
     def modify_and_apply(self, modifier_func, retries=2, cmd_args=None):
         """
@@ -494,9 +578,14 @@ class APIObject:
             if do_apply is False:
                 break
 
-            apply_action = oc_action(self.context, "apply", cmd_args=["-f", "-", cmd_args],
-                                     namespace=self.namespace(if_missing=None), stdin_obj=self.as_dict(),
-                                     last_attempt=(attempt == 0))
+            apply_action = oc_action(
+                self.context,
+                "apply",
+                cmd_args=["-f", "-", cmd_args],
+                namespace=self.namespace(if_missing=None),
+                stdin_obj=self.as_dict(),
+                last_attempt=(attempt == 0),
+            )
 
             r.add_action(apply_action)
 
@@ -535,9 +624,14 @@ class APIObject:
         if ignore_not_found is True:
             base_args.append("--ignore-not-found")
 
-        r.add_action(oc_action(self.context, "delete",
-                               cmd_args=[self.qname(), base_args, cmd_args],
-                               namespace=self.namespace(if_missing=None)))
+        r.add_action(
+            oc_action(
+                self.context,
+                "delete",
+                cmd_args=[self.qname(), base_args, cmd_args],
+                namespace=self.namespace(if_missing=None),
+            )
+        )
         r.fail_if("Error deleting object")
         return r
 
@@ -550,10 +644,13 @@ class APIObject:
         base_args = ["-o=json"]
 
         for attempt in reversed(list(range(9))):
-            r_action = oc_action(self.context, "get",
-                                 cmd_args=[self.qname(), base_args],
-                                 namespace=self.namespace(if_missing=None),
-                                 last_attempt=(attempt == 0))
+            r_action = oc_action(
+                self.context,
+                "get",
+                cmd_args=[self.qname(), base_args],
+                namespace=self.namespace(if_missing=None),
+                last_attempt=(attempt == 0),
+            )
 
             r.add_action(r_action)
             if r_action.status == 0:
@@ -575,25 +672,34 @@ class APIObject:
         base_args = ["-o=json", "--ignore-not-found"]
 
         for attempt in reversed(list(range(9))):
-            r_action = oc_action(self.context, "get",
-                                 cmd_args=[self.qname(), base_args],
-                                 namespace=self.namespace(if_missing=None),
-                                 last_attempt=(attempt == 0))
+            r_action = oc_action(
+                self.context,
+                "get",
+                cmd_args=[self.qname(), base_args],
+                namespace=self.namespace(if_missing=None),
+                last_attempt=(attempt == 0),
+            )
 
             r.add_action(r_action)
             if r_action.status == 0:
                 new_apiobj = APIObject(string_to_model=r_action.out)
-                if new_apiobj.is_kind('list') and not new_apiobj.elements():
+                if new_apiobj.is_kind("list") and not new_apiobj.elements():
                     # Nothing to return
                     if ignore_not_found:
                         return None
-                    raise OpenShiftPythonException('Unable to retrieve current copy of {}; resource missing'.format(self.fqname()), r)
+                    raise OpenShiftPythonException(
+                        "Unable to retrieve current copy of {}; resource missing".format(
+                            self.fqname()
+                        ),
+                        r,
+                    )
 
                 return new_apiobj
             time.sleep(1)
 
-        raise OpenShiftPythonException('Unable to retrieve current copy of {}; api errors'.format(self.fqname()),
-                                       r)
+        raise OpenShiftPythonException(
+            "Unable to retrieve current copy of {}; api errors".format(self.fqname()), r
+        )
 
     def get_label(self, name, if_missing=None):
         """
@@ -608,7 +714,7 @@ class APIObject:
         return if_missing
 
     def label(self, labels, overwrite=True, cmd_args=None, refresh_model=True):
-        """"
+        """ "
         Sends a request to the server to label this API object.
         :param labels: A dictionary of labels to apply to the object. If value is None, label will be removed.
         :param overwrite: Whether to pass the --overwrite argument.
@@ -635,7 +741,7 @@ class APIObject:
         return if_missing
 
     def annotate(self, annotations, overwrite=True, cmd_args=None, refresh_model=True):
-        """"
+        """ "
         Sends a request to the server to annotate this API object
         :param annotations: A dictionary of annotations to apply to the object. If value is None, annotation will be removed.
         :param overwrite: Whether to pass the --overwrite argument.
@@ -643,7 +749,9 @@ class APIObject:
         :param refresh_model: Whether to refresh apiobject model after label is applied.
         :return: Result
         """
-        result = self.self_selector().annotate(annotations=annotations, overwrite=overwrite, cmd_args=cmd_args)
+        result = self.self_selector().annotate(
+            annotations=annotations, overwrite=overwrite, cmd_args=cmd_args
+        )
 
         if refresh_model:
             self.refresh()
@@ -660,8 +768,14 @@ class APIObject:
         patch_def = json.dumps(patch_dict, indent=None)
 
         base_args.append("--patch=" + patch_def)
-        r.add_action(oc_action(self.context, "patch", cmd_args=[base_args, cmd_args],
-                               namespace=self.namespace(if_missing=None)))
+        r.add_action(
+            oc_action(
+                self.context,
+                "patch",
+                cmd_args=[base_args, cmd_args],
+                namespace=self.namespace(if_missing=None),
+            )
+        )
 
         r.fail_if("Error running patch on objects")
         return r
@@ -673,21 +787,22 @@ class APIObject:
         added to the returned list. If the receiver is not of kind List, the [self] will be returned.
         """
         self_kind = self.kind(lowercase=False)
-        if self_kind.endswith('List'):  # e.g. "List", "PodList", "NodeList"
+        if self_kind.endswith("List"):  # e.g. "List", "PodList", "NodeList"
             item_kind = self_kind[
-                        :-4]  # strip 'List' off the end. This may leave '' or the kind of elements in the list
+                :-4
+            ]  # strip 'List' off the end. This may leave '' or the kind of elements in the list
         else:
             return [self]
 
         l = []
-        for e in self.model['items']:
+        for e in self.model["items"]:
             d = e._primitive()
 
             # If not an empty string, set the kind in the underlying object. This is because of the odd
             # way `oc adm manage-node --list-pods <node> -o=yaml` returns yaml for each pod, but without
             # a 'kind' in the object markup. So, if we get a 'PodList', set the kind before making into apiobjects.
             if item_kind:
-                d['kind'] = item_kind
+                d["kind"] = item_kind
 
             if cls is not None:
                 obj = cls(d)
@@ -720,7 +835,14 @@ class APIObject:
 
         # Convert python object into a json string
         r = Result("process")
-        r.add_action(oc_action(self.context, "process", cmd_args=["-f", "-", base_args, cmd_args], stdin_obj=template))
+        r.add_action(
+            oc_action(
+                self.context,
+                "process",
+                cmd_args=["-f", "-", base_args, cmd_args],
+                stdin_obj=template,
+            )
+        )
         r.fail_if("Error processing template")
         return APIObject(string_to_model=r.out()).elements()
 
@@ -730,7 +852,7 @@ class APIObject:
         if apiobj.model.metadata.ownerReferences is Missing:
             return False
 
-        '''
+        """
         Example:
           ownerReferences:
           - apiVersion: v1
@@ -739,7 +861,7 @@ class APIObject:
             kind: ReplicationController
             name: ruby-hello-world-1
             uid: 50347024-a615-11e8-8841-0a46c474dfe0
-        '''
+        """
 
         for ref in apiobj.model.metadata.ownerReferences:
             if kind_matches(self.kind(), ref.kind) and self.name() == ref.name:
@@ -755,7 +877,7 @@ class APIObject:
         if ref is Missing:
             return False
 
-        '''
+        """
         Example:
         kind: Event
         ...
@@ -766,9 +888,13 @@ class APIObject:
           namespace: openshift-monitoring
           resourceVersion: "1196701489"
           uid: 675a1b29-d862-11e8-8383-02d8407159d1
-        '''
+        """
 
-        if kind_matches(self.kind(), ref.kind) and self.name() == ref.name and self.namespace() == ref.namespace:
+        if (
+            kind_matches(self.kind(), ref.kind)
+            and self.name() == ref.name
+            and self.namespace() == ref.namespace
+        ):
             return True
 
         return False
@@ -801,8 +927,8 @@ class APIObject:
         """
 
         # If this is a project, just return all events in the namespace.
-        if kind_matches(self.kind(), ['project', 'namespace']):
-            return selector('events').objects()
+        if kind_matches(self.kind(), ["project", "namespace"]):
+            return selector("events").objects()
 
         involved = []
 
@@ -810,7 +936,7 @@ class APIObject:
             if self.am_i_involved(apiobj):
                 involved.append(apiobj)
 
-        selector('events', static_context=self.context).for_each(check_if_involved)
+        selector("events", static_context=self.context).for_each(check_if_involved)
 
         return involved
 
@@ -833,10 +959,12 @@ class APIObject:
 
         # TODO: add rc, rs, ds, project, ... ?
 
-        if kind_matches(this_kind, 'node') and kind_matches(find_kind, 'pod'):
-            return selector('pod',
-                            all_namespaces=True,
-                            field_selectors={'spec.nodeName': self.name()})
+        if kind_matches(this_kind, "node") and kind_matches(find_kind, "pod"):
+            return selector(
+                "pod",
+                all_namespaces=True,
+                field_selectors={"spec.nodeName": self.name()},
+            )
 
         if this_kind.startswith("template"):
             labels["template"] = name
@@ -852,11 +980,16 @@ class APIObject:
             labels["job-name"] = name
         else:
             raise OpenShiftPythonException(
-                "Unknown how to find {} resources to related to kind: {}".format(find_kind, this_kind))
+                "Unknown how to find {} resources to related to kind: {}".format(
+                    find_kind, this_kind
+                )
+            )
 
         return selector(find_kind, labels=labels, static_context=self.context)
 
-    def execute(self, cmd_to_exec=None, stdin=None, container_name=None, auto_raise=True):
+    def execute(
+        self, cmd_to_exec=None, stdin=None, container_name=None, auto_raise=True
+    ):
         """
         Performs an oc exec operation on a pod object - passing all of the arguments.
         :param cmd_to_exec: An array containing all elements of the command to execute.
@@ -872,18 +1005,27 @@ class APIObject:
         oc_args = []
 
         if stdin:
-            oc_args.append('-i')
+            oc_args.append("-i")
 
         if container_name:
-            oc_args.append('--container={}'.format(container_name))
+            oc_args.append("--container={}".format(container_name))
 
         r = Result("exec")
         r.add_action(
-            oc_action(self.context, "exec", cmd_args=[oc_args, self.qname(), "--", cmd_to_exec],
-                      stdin_str=stdin, namespace=self.namespace(if_missing=None)))
+            oc_action(
+                self.context,
+                "exec",
+                cmd_args=[oc_args, self.qname(), "--", cmd_to_exec],
+                stdin_str=stdin,
+                namespace=self.namespace(if_missing=None),
+            )
+        )
         if auto_raise:
             r.fail_if(
-                "Error running {} exec on {} [rc={}]: {}".format(self.qname(), cmd_to_exec[0], r.status(), r.err()))
+                "Error running {} exec on {} [rc={}]: {}".format(
+                    self.qname(), cmd_to_exec[0], r.status(), r.err()
+                )
+            )
         return r
 
     def __getstate__(self):

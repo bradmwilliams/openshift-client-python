@@ -30,12 +30,12 @@ class Result(object):
 
     # Returns aggregate stdout from all underlying actions
     def out(self):
-        s = u''
+        s = ""
         for action in self.__actions:
             if action.out:
                 s += action.out
                 if not s.endswith("\n"):
-                    s += u'\n'
+                    s += "\n"
         return s
 
     def get_timeout(self):
@@ -50,35 +50,62 @@ class Result(object):
 
     # Returns aggregate stderr from all underlying actions
     def err(self):
-        s = u''
+        s = ""
         for action in self.__actions:
             if action.err:
                 s += action.err
                 if not s.endswith("\n"):
-                    s += u'\n'
+                    s += "\n"
         return s
 
-    def as_dict(self, truncate_stdout=-1, redact_tokens=True, redact_streams=True, redact_references=True):
+    def as_dict(
+        self,
+        truncate_stdout=-1,
+        redact_tokens=True,
+        redact_streams=True,
+        redact_references=True,
+    ):
 
         m = {
             "operation": self.high_level_operation,
             "status": self.status(),
-            "actions": [action.as_dict(truncate_stdout=truncate_stdout, redact_tokens=redact_tokens,
-                                       redact_references=redact_references,
-                                       redact_streams=redact_streams) for action in self.__actions]
+            "actions": [
+                action.as_dict(
+                    truncate_stdout=truncate_stdout,
+                    redact_tokens=redact_tokens,
+                    redact_references=redact_references,
+                    redact_streams=redact_streams,
+                )
+                for action in self.__actions
+            ],
         }
 
         return m
 
-    def as_json(self, indent=4, truncate_stdout=-1, redact_tokens=True, redact_streams=True, redact_references=True):
+    def as_json(
+        self,
+        indent=4,
+        truncate_stdout=-1,
+        redact_tokens=True,
+        redact_streams=True,
+        redact_references=True,
+    ):
         return json.dumps(
-            self.as_dict(truncate_stdout=truncate_stdout, redact_tokens=redact_tokens,
-                         redact_references=redact_references, redact_streams=redact_streams),
-            indent=indent)
+            self.as_dict(
+                truncate_stdout=truncate_stdout,
+                redact_tokens=redact_tokens,
+                redact_references=redact_references,
+                redact_streams=redact_streams,
+            ),
+            indent=indent,
+        )
 
     def add_action(self, action):
         self.__actions.append(action)
-        if self.limit_tracking_actions is not None and len(self.__actions) > self.limit_tracking_actions:
+        if (
+            self.limit_tracking_actions is not None
+            and len(self.__actions) > self.limit_tracking_actions
+        ):
             self.__actions.pop(0)
 
     def add_result(self, result):
@@ -89,7 +116,7 @@ class Result(object):
 
     def fail_if(self, msg):
         if self.get_timeout():
-            msg += " (Timeout during: {})".format(self.get_timeout().as_dict()['cmd'])
+            msg += " (Timeout during: {})".format(self.get_timeout().as_dict()["cmd"])
 
         if self.status() != 0:
             raise OpenShiftPythonException(msg, self)

@@ -4,7 +4,6 @@ from six.moves import range
 
 
 class OpenShiftPythonException(Exception):
-
     def __init__(self, msg, result=None, **kwargs):
         super(self.__class__, self).__init__(msg)
         self.msg = msg
@@ -35,7 +34,6 @@ class OpenShiftPythonException(Exception):
 
 
 class ModelError(Exception):
-
     def __init__(self, msg, **kwargs):
         super(self.__class__, self).__init__(msg)
         self.msg = msg
@@ -43,7 +41,6 @@ class ModelError(Exception):
 
 
 class MissingModel(dict):
-
     def __init__(self):
         super(self.__class__, self).__init__()
         pass
@@ -52,19 +49,27 @@ class MissingModel(dict):
         return self
 
     def __setattr__(self, key, value):
-        raise ModelError("Invalid attempt to set key(%s) in missing branch of model" % key)
+        raise ModelError(
+            "Invalid attempt to set key(%s) in missing branch of model" % key
+        )
 
     def __delattr__(self, key):
-        raise ModelError("Invalid attempt to delete key(%s) in missing branch of model" % key)
+        raise ModelError(
+            "Invalid attempt to delete key(%s) in missing branch of model" % key
+        )
 
     def __getitem__(self, attr):
         return self
 
     def __setitem__(self, key, value):
-        raise ModelError("Invalid attempt to set key(%s) in missing branch of model" % key)
+        raise ModelError(
+            "Invalid attempt to set key(%s) in missing branch of model" % key
+        )
 
     def __delitem__(self, key):
-        raise ModelError("Invalid attempt to delete key(%s) in missing branch of model" % key)
+        raise ModelError(
+            "Invalid attempt to delete key(%s) in missing branch of model" % key
+        )
 
     # Express false-y
     def __bool__(self):
@@ -111,7 +116,7 @@ def to_model_or_val(v, case_insensitive=False):
         return v
 
 
-def _element_can_match( master, test, case_insensitive=False):
+def _element_can_match(master, test, case_insensitive=False):
     if master is Missing:
         return False
 
@@ -144,7 +149,9 @@ def _element_can_match( master, test, case_insensitive=False):
         else:
             return False
 
-    raise ModelError("Don't know how to compare %s and %s" % (str(type(master)), str(type(test))))
+    raise ModelError(
+        "Don't know how to compare %s and %s" % (str(type(master)), str(type(test)))
+    )
 
 
 def _element_in_list(master, e, case_insensitive=False):
@@ -173,7 +180,6 @@ def _dict_is_subset(master, subset, case_insensitive=False):
 
 
 class ListModel(list):
-
     def __init__(self, list_to_model, case_insensitive=False):
         super(ListModel, self).__init__()
         self.__case_insensitive = case_insensitive
@@ -225,11 +231,12 @@ class ListModel(list):
             # If we were not passed a list, turn it into one
             list_or_entry = [list_or_entry]
 
-        return _list_is_subset(self, list_or_entry, case_insensitive=self.__case_insensitive)
+        return _list_is_subset(
+            self, list_or_entry, case_insensitive=self.__case_insensitive
+        )
 
 
 class Model(dict):
-
     def __init__(self, dict_to_model=None, case_insensitive=False):
         super(Model, self).__init__()
 
@@ -244,7 +251,7 @@ class Model(dict):
     def __getattr__(self, attr):
 
         if isinstance(attr, six.string_types):
-            if attr.startswith('_Model__'):  # e.g. _Model__case_insensitive
+            if attr.startswith("_Model__"):  # e.g. _Model__case_insensitive
                 raise AttributeError
 
             if self.__case_insensitive:
@@ -261,7 +268,7 @@ class Model(dict):
             return Missing
 
     def __setattr__(self, key, value):
-        if key.startswith('_Model__'):  # e.g. _Model__case_insensitive
+        if key.startswith("_Model__"):  # e.g. _Model__case_insensitive
             return super(Model, self).__setattr__(key, value)
 
         if self.__case_insensitive:
@@ -273,7 +280,9 @@ class Model(dict):
         return self.__getattr__(key)
 
     def __setitem__(self, key, value):
-        super(Model, self).__setitem__(key, to_model_or_val(value, case_insensitive=self.__case_insensitive))
+        super(Model, self).__setitem__(
+            key, to_model_or_val(value, case_insensitive=self.__case_insensitive)
+        )
 
     def __delitem__(self, key):
         if self.__is_case_sensitive__():

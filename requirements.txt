@@ -5,3 +5,4 @@ build
 six
 pyyaml
 paramiko
+pre-commit

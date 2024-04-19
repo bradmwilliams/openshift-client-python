@@ -25,7 +25,9 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-def __new_objects_action_selector(verb, cmd_args=None, stdin_obj=None, no_namespace=False, auto_raise=True):
+def __new_objects_action_selector(
+    verb, cmd_args=None, stdin_obj=None, no_namespace=False, auto_raise=True
+):
     """
     Performs and oc action and records objects output from the verb
     as changed in the content.
@@ -37,11 +39,18 @@ def __new_objects_action_selector(verb, cmd_args=None, stdin_obj=None, no_namesp
     :return: A selector for the newly created objects
     """
 
-    sel = Selector(verb,
-                   object_action=oc_action(cur_context(), verb, cmd_args=['-o=name', cmd_args], stdin_obj=stdin_obj,
-                                           no_namespace=no_namespace))
+    sel = Selector(
+        verb,
+        object_action=oc_action(
+            cur_context(),
+            verb,
+            cmd_args=["-o=name", cmd_args],
+            stdin_obj=stdin_obj,
+            no_namespace=no_namespace,
+        ),
+    )
     if auto_raise:
-        sel.fail_if('{} returned an error: {}'.format(verb, sel.err().strip()))
+        sel.fail_if("{} returned an error: {}".format(verb, sel.err().strip()))
 
     return sel
 
@@ -93,7 +102,7 @@ def get_auth_token(cmd_args=None):
     """
 
     r = Result("whoami")
-    r.add_action(oc_action(cur_context(), "whoami", cmd_args=['-t', cmd_args]))
+    r.add_action(oc_action(cur_context(), "whoami", cmd_args=["-t", cmd_args]))
     r.fail_if("Unable to determine current token")
     return r.out().strip()
 
@@ -107,7 +116,11 @@ def get_serviceaccount_auth_token(sa_name, cmd_args=None):
     """
 
     r = Result("sa_token")
-    r.add_action(oc_action(cur_context(), "serviceaccounts", cmd_args=['get-token', sa_name, cmd_args]))
+    r.add_action(
+        oc_action(
+            cur_context(), "serviceaccounts", cmd_args=["get-token", sa_name, cmd_args]
+        )
+    )
     r.fail_if("Unable to determine serviceaccount token")
     return r.out().strip()
 
@@ -119,7 +132,9 @@ def get_config_context(cmd_args=None):
     exists, None is returned.
     """
     r = Result("current-context")
-    r.add_action(oc_action(cur_context(), "config", cmd_args=['current-context', cmd_args]))
+    r.add_action(
+        oc_action(cur_context(), "config", cmd_args=["current-context", cmd_args])
+    )
     if r.status() != 0:
         return None
 
@@ -137,8 +152,10 @@ def use_config_context(context, cmd_args=None):
         return
 
     r = Result("use-context")
-    r.add_action(oc_action(cur_context(), "config", cmd_args=['use-context', context, cmd_args]))
-    r.fail_if('Error when trying to use to use-context: {}'.format(context))
+    r.add_action(
+        oc_action(cur_context(), "config", cmd_args=["use-context", context, cmd_args])
+    )
+    r.fail_if("Error when trying to use to use-context: {}".format(context))
 
     return True
 
@@ -153,12 +170,23 @@ def login(username, password, cmd_args=None):
     :return:
     """
     r = Result("login")
-    r.add_action(oc_action(cur_context(), "login", cmd_args=['-u', username, '-p', password, cmd_args]))
-    r.fail_if('Error when trying to login')
+    r.add_action(
+        oc_action(
+            cur_context(), "login", cmd_args=["-u", username, "-p", password, cmd_args]
+        )
+    )
+    r.fail_if("Error when trying to login")
     return True
 
 
-def new_project(name, ok_if_exists=False, cmd_args=None, description=None, display_name=None, adm=False):
+def new_project(
+    name,
+    ok_if_exists=False,
+    cmd_args=None,
+    description=None,
+    display_name=None,
+    adm=False,
+):
     """
     Creates a new project
     :param name: The name of the project to create
@@ -173,27 +201,41 @@ def new_project(name, ok_if_exists=False, cmd_args=None, description=None, displ
 
     # If user is ok with the project already existing, see if it is and return immediately if detected
     if ok_if_exists:
-        if selector('project/{}'.format(name)).count_existing() > 0:
+        if selector("project/{}".format(name)).count_existing() > 0:
             return project(name)
 
     other_args = []
     if description:
-        other_args.extend(['--description', description])
+        other_args.extend(["--description", description])
 
     if display_name:
-        other_args.extend(['--display-name', display_name])
+        other_args.extend(["--display-name", display_name])
 
     r = Result("new-project")
     if adm:
-        r.add_action(oc_action(cur_context(), 'adm', cmd_args=['new-project', name, cmd_args, other_args]))
+        r.add_action(
+            oc_action(
+                cur_context(),
+                "adm",
+                cmd_args=["new-project", name, cmd_args, other_args],
+            )
+        )
     else:
-        r.add_action(oc_action(cur_context(), "new-project", cmd_args=[name, cmd_args, other_args, '--skip-config-write']))
+        r.add_action(
+            oc_action(
+                cur_context(),
+                "new-project",
+                cmd_args=[name, cmd_args, other_args, "--skip-config-write"],
+            )
+        )
 
     r.fail_if("Unable to create new project: {}".format(name))
     return project(name)
 
 
-def delete_project(name, ignore_not_found=False, grace_period=None, force=False, cmd_args=None):
+def delete_project(
+    name, ignore_not_found=False, grace_period=None, force=False, cmd_args=None
+):
     """
     Deletes the identified project.
     :param name: The name of the project to delete (e.g. 'project/x', 'namespace/x', or 'x')
@@ -205,7 +247,9 @@ def delete_project(name, ignore_not_found=False, grace_period=None, force=False,
     """
 
     r = Result("delete-project")
-    _, _, name = naming.split_fqn(name)  # Allow project/x, namespace/x, etc. Just out actual name.
+    _, _, name = naming.split_fqn(
+        name
+    )  # Allow project/x, namespace/x, etc. Just out actual name.
     base_args = list()
 
     if ignore_not_found:
@@ -217,11 +261,15 @@ def delete_project(name, ignore_not_found=False, grace_period=None, force=False,
     if force:
         base_args.append("--force")
 
-    r.add_action(oc_action(cur_context(), "delete", cmd_args=["project", name, base_args, cmd_args]))
+    r.add_action(
+        oc_action(
+            cur_context(), "delete", cmd_args=["project", name, base_args, cmd_args]
+        )
+    )
     r.fail_if("Unable to delete project: {}".format(name))
 
     # Give the controller time to clean up project resources:
-    while selector('namespace/{}'.format(name)).count_existing() > 0:
+    while selector("namespace/{}".format(name)).count_existing() > 0:
         time.sleep(1)
 
 
@@ -238,7 +286,9 @@ def _to_dict_list(str_dict_model_apiobject_or_list_thereof):
 
     # If incoming is not a list, make it a list so we can keep DRY
     if not isinstance(str_dict_model_apiobject_or_list_thereof, list):
-        str_dict_model_apiobject_or_list_thereof = [str_dict_model_apiobject_or_list_thereof]
+        str_dict_model_apiobject_or_list_thereof = [
+            str_dict_model_apiobject_or_list_thereof
+        ]
 
     for i in str_dict_model_apiobject_or_list_thereof:
 
@@ -249,13 +299,15 @@ def _to_dict_list(str_dict_model_apiobject_or_list_thereof):
             i = i.model
 
         if isinstance(i, six.string_types):
-            if i.strip().startswith('{'):
+            if i.strip().startswith("{"):
                 i = json.loads(i)
             else:
                 i = yaml.safe_load(i)
 
         if not isinstance(i, dict):
-            raise ValueError('Unable to convert type into list items dict: {}'.format(type(i)))
+            raise ValueError(
+                "Unable to convert type into list items dict: {}".format(type(i))
+            )
 
         if not isinstance(i, Model):
             i = Model(dict_to_model=i)
@@ -270,17 +322,24 @@ def _to_dict_list(str_dict_model_apiobject_or_list_thereof):
         # kind: ImageStreamList.
         if i.kind.endswith("List") and i.items is not Missing:
             # can't use .items here since that is interpreted as a method reference
-            normalized_list.extend(i['items']._primitive())
+            normalized_list.extend(i["items"]._primitive())
         else:
             normalized_list.append(i._primitive())
 
     return normalized_list, namespace_detected
 
 
-def drain_node(apiobj_node_name_or_qname, ignore_daemonsets=True,
-               delete_local_data=True, force=False, timeout_seconds=None,
-               grace_period_seconds=None, cmd_args=None, auto_raise=True):
-    r = Result('drain')
+def drain_node(
+    apiobj_node_name_or_qname,
+    ignore_daemonsets=True,
+    delete_local_data=True,
+    force=False,
+    timeout_seconds=None,
+    grace_period_seconds=None,
+    cmd_args=None,
+    auto_raise=True,
+):
+    r = Result("drain")
 
     base_args = list()
 
@@ -290,7 +349,7 @@ def drain_node(apiobj_node_name_or_qname, ignore_daemonsets=True,
         _, _, node_name = naming.split_fqn(apiobj_node_name_or_qname)
 
     if ignore_daemonsets:
-        base_args.append('--ignore-daemonsets')
+        base_args.append("--ignore-daemonsets")
 
     if delete_local_data:
         # The '--delete-local-data' flag is being deprecated.
@@ -298,31 +357,38 @@ def drain_node(apiobj_node_name_or_qname, ignore_daemonsets=True,
         # The following logic is to provide backward compatibility for folks that
         # may not update their 'oc' binaries all that often.
         version = get_client_version()
-        pieces = version.split('.')
+        pieces = version.split(".")
         major = int(pieces[0])
         minor = int(pieces[1])
 
         # Local builds of OC have `alpha` in their version string.  We are going
         # to assume that anyone building their own version of 'oc' will most
         # likely have the latest/greatest code that contains the new flag.
-        if 'alpha' in version or major > 4 or (major == 4 and minor >= 7):
-            base_args.append('--delete-emptydir-data')
+        if "alpha" in version or major > 4 or (major == 4 and minor >= 7):
+            base_args.append("--delete-emptydir-data")
         else:
-            base_args.append('--delete-local-data')
+            base_args.append("--delete-local-data")
 
     if force:
-        base_args.append('--force')
+        base_args.append("--force")
 
     if timeout_seconds is not None and timeout_seconds > 0:
-        base_args.append('--timeout={}s'.format(timeout_seconds))
+        base_args.append("--timeout={}s".format(timeout_seconds))
 
     if grace_period_seconds is not None and grace_period_seconds > -1:
-        base_args.append('--grace-period={}'.format(grace_period_seconds))
+        base_args.append("--grace-period={}".format(grace_period_seconds))
 
-    r.add_action(oc_action(cur_context(), 'adm', cmd_args=['drain', node_name, base_args, cmd_args], no_namespace=True))
+    r.add_action(
+        oc_action(
+            cur_context(),
+            "adm",
+            cmd_args=["drain", node_name, base_args, cmd_args],
+            no_namespace=True,
+        )
+    )
 
     if auto_raise:
-        r.fail_if('Error during drain of node: {}'.format(node_name))
+        r.fail_if("Error during drain of node: {}".format(node_name))
 
     return r
 
@@ -342,21 +408,23 @@ def create(str_dict_model_apiobject_or_list_thereof, cmd_args=None):
     if not items:
         return selector([])
 
-    m = {
-        'kind': 'List',
-        'apiVersion': 'v1',
-        'metadata': {},
-        'items': items
-    }
+    m = {"kind": "List", "apiVersion": "v1", "metadata": {}, "items": items}
 
-    return __new_objects_action_selector("create",
-                                         cmd_args=["-f", "-", cmd_args],
-                                         stdin_obj=m,
-                                         no_namespace=namespace_detected)
+    return __new_objects_action_selector(
+        "create",
+        cmd_args=["-f", "-", cmd_args],
+        stdin_obj=m,
+        no_namespace=namespace_detected,
+    )
 
 
-def delete(str_dict_model_apiobject_or_list_thereof, ignore_not_found=False,
-           grace_period=None, force=False, cmd_args=None):
+def delete(
+    str_dict_model_apiobject_or_list_thereof,
+    ignore_not_found=False,
+    grace_period=None,
+    force=False,
+    cmd_args=None,
+):
     """
     Deletes one or more objects
     :param str_dict_model_apiobject_or_list_thereof:
@@ -373,29 +441,29 @@ def delete(str_dict_model_apiobject_or_list_thereof, ignore_not_found=False,
     if not items:
         return []
 
-    m = {
-        'kind': 'List',
-        'apiVersion': 'v1',
-        'metadata': {},
-        'items': items
-    }
+    m = {"kind": "List", "apiVersion": "v1", "metadata": {}, "items": items}
 
-    base_args = ['-o=name', '-f', '-']
+    base_args = ["-o=name", "-f", "-"]
 
     if ignore_not_found:
-        base_args.append('--ignore-not-found')
+        base_args.append("--ignore-not-found")
 
     if grace_period is not None:
-        base_args.append('--grace-period={}'.format(grace_period))
+        base_args.append("--grace-period={}".format(grace_period))
 
     if force:
-        base_args.append('--force')
+        base_args.append("--force")
 
-    r = Result('delete')
-    r.add_action(oc_action(cur_context(), "delete",
-                           cmd_args=[base_args, cmd_args],
-                           stdin_obj=m,
-                           no_namespace=namespace_detected))
+    r = Result("delete")
+    r.add_action(
+        oc_action(
+            cur_context(),
+            "delete",
+            cmd_args=[base_args, cmd_args],
+            stdin_obj=m,
+            no_namespace=namespace_detected,
+        )
+    )
 
     r.fail_if("Delete operation failed")
 
@@ -423,12 +491,16 @@ def invoke(verb, cmd_args=None, stdin_str=None, no_namespace=False, auto_raise=T
     :param auto_raise: Raise an exception if the command returns a non-zero return code
     :return: A Result object containing the executed Action(s) with the output captured.
     """
-    r = Result('invoke')
-    r.add_action(oc_action(cur_context(),
-                           verb=verb,
-                           cmd_args=cmd_args,
-                           stdin_str=stdin_str,
-                           no_namespace=no_namespace))
+    r = Result("invoke")
+    r.add_action(
+        oc_action(
+            cur_context(),
+            verb=verb,
+            cmd_args=cmd_args,
+            stdin_str=stdin_str,
+            no_namespace=no_namespace,
+        )
+    )
     if auto_raise:
         r.fail_if("Non-zero return code from invoke action")
     return r
@@ -443,12 +515,16 @@ def get_pod_metrics(pod_obj, auto_raise=True):
     :param auto_raise: If True, raise an exception if the command fails. Else return Missing.
     :return: A 'PodMetrics' APIObject
     """
-    r = Result('raw-metrics')
+    r = Result("raw-metrics")
     cmd_args = [
-        '--raw',
-        '/apis/metrics.k8s.io/v1beta1/namespaces/{}/pods/{}'.format(pod_obj.namespace(), pod_obj.name())
+        "--raw",
+        "/apis/metrics.k8s.io/v1beta1/namespaces/{}/pods/{}".format(
+            pod_obj.namespace(), pod_obj.name()
+        ),
     ]
-    r.add_action(oc_action(cur_context(), verb='get', cmd_args=cmd_args, no_namespace=True))
+    r.add_action(
+        oc_action(cur_context(), verb="get", cmd_args=cmd_args, no_namespace=True)
+    )
 
     if auto_raise:
         r.fail_if("Non-zero return code from get --raw to metrics.k8s.io")
@@ -471,8 +547,9 @@ def get_pods_by_node(apiobj_node_name_or_qname):
         # permit node/xyz, but and strip off node/
         _, _, node_name = naming.split_fqn(apiobj_node_name_or_qname)
 
-    return selector('pod', all_namespaces=True,
-                    field_selectors={'spec.nodeName': node_name}).objects(ignore_not_found=True)
+    return selector(
+        "pod", all_namespaces=True, field_selectors={"spec.nodeName": node_name}
+    ).objects(ignore_not_found=True)
 
 
 def get_client_version():
@@ -480,28 +557,30 @@ def get_client_version():
     :return: Returns the version of the oc binary being used (e.g. '3.11.28')
     """
 
-    r = Result('version3')
-    r.add_action(oc_action(cur_context(), verb='version'))
-    r.fail_if('Unable to determine version')
+    r = Result("version3")
+    r.add_action(oc_action(cur_context(), verb="version"))
+    r.fail_if("Unable to determine version")
 
     # Example OpenShift 3 output:
     # oc v3.11.82
     # kubernetes v1.11.0+d4cacc0
     # features: Basic-Auth GSSAPI Kerberos SPNEGO
     for line in r.out().splitlines():
-        if line.startswith('oc v'):
-            return line.split()[1].lstrip('v')
+        if line.startswith("oc v"):
+            return line.split()[1].lstrip("v")
 
-    r = Result('version4')
-    r.add_action(oc_action(cur_context(), verb='version', cmd_args=['-o=json']))
-    r.fail_if('Unable to determine version')
+    r = Result("version4")
+    r.add_action(oc_action(cur_context(), verb="version", cmd_args=["-o=json"]))
+    r.fail_if("Unable to determine version")
 
     version_dict = json.loads(r.out())
     version_model = Model(dict_to_model=version_dict, case_insensitive=True)
     if version_model.clientVersion.gitVersion:
-        return version_model.clientVersion.gitVersion.lstrip('v')
+        return version_model.clientVersion.gitVersion.lstrip("v")
 
-    raise OpenShiftPythonException('Unable extract version from json: {}'.format(r.out()))
+    raise OpenShiftPythonException(
+        "Unable extract version from json: {}".format(r.out())
+    )
 
 
 def get_server_version():
@@ -509,9 +588,9 @@ def get_server_version():
     :return: Returns the version of the oc server being accessed (e.g '3.11.28')
     """
 
-    r = Result('version3')
-    r.add_action(oc_action(cur_context(), verb='version'))
-    r.fail_if('Unable to determine version')
+    r = Result("version3")
+    r.add_action(oc_action(cur_context(), verb="version"))
+    r.fail_if("Unable to determine version")
 
     # Example OpenShift 3 output:
     # oc v3.11.82
@@ -522,30 +601,38 @@ def get_server_version():
     # openshift v3.11.82
     # kubernetes v1.11.0+d4cacc0
     for line in reversed(r.out().splitlines()):
-        if line.startswith('openshift v'):
-            return line.split()[1].strip().lstrip('v')
-        elif line.startswith('Server Version: '):
+        if line.startswith("openshift v"):
+            return line.split()[1].strip().lstrip("v")
+        elif line.startswith("Server Version: "):
             version_string = line.split()[2].strip().lstrip()
-            if not version_string.startswith('version.Info{'):
+            if not version_string.startswith("version.Info{"):
                 return version_string
 
     # If not found, this is a 4.0 cluster where this output line was removed. The best
     # alternative is the version returned by the API.
-    r = Result('version4')
-    r.add_action(oc_action(cur_context(), 'adm', cmd_args=['release', 'info', '-o=json']))
-    r.fail_if('Error returning release info')
+    r = Result("version4")
+    r.add_action(
+        oc_action(cur_context(), "adm", cmd_args=["release", "info", "-o=json"])
+    )
+    r.fail_if("Error returning release info")
 
     version_dict = json.loads(r.out())
     version_model = Model(dict_to_model=version_dict, case_insensitive=True)
     if version_model.metadata.version:
         return version_model.metadata.version
 
-    raise OpenShiftPythonException('Unable find version string in json: {}'.format(r.out()))
+    raise OpenShiftPythonException(
+        "Unable find version string in json: {}".format(r.out())
+    )
 
 
-def apply(str_dict_model_apiobject_or_list_thereof, overwrite=False, cmd_args=None,
-          fetch_resource_versions=False,
-          auto_raise=True):
+def apply(
+    str_dict_model_apiobject_or_list_thereof,
+    overwrite=False,
+    cmd_args=None,
+    fetch_resource_versions=False,
+    auto_raise=True,
+):
     """
     Applies the specifies resource(s) on the server.
     :param str_dict_model_apiobject_or_list_thereof: The definition of one or more API object.
@@ -562,7 +649,7 @@ def apply(str_dict_model_apiobject_or_list_thereof, overwrite=False, cmd_args=No
     """
     base_args = list()
     if overwrite:
-        base_args.append('--overwrite')
+        base_args.append("--overwrite")
 
     items, namespace_detected = _to_dict_list(str_dict_model_apiobject_or_list_thereof)
 
@@ -570,12 +657,7 @@ def apply(str_dict_model_apiobject_or_list_thereof, overwrite=False, cmd_args=No
     if not items:
         return selector([])
 
-    m = {
-        'kind': 'List',
-        'apiVersion': 'v1',
-        'metadata': {},
-        'items': items
-    }
+    m = {"kind": "List", "apiVersion": "v1", "metadata": {}, "items": items}
 
     # If we are supposed to update resource versions before performing the apply,
     # get a current copy of the incoming resources and update the incoming
@@ -590,18 +672,25 @@ def apply(str_dict_model_apiobject_or_list_thereof, overwrite=False, cmd_args=No
             server_apiobj = apiobj.current(ignore_not_found=True)
             # Does the object exist on the server?
             if server_apiobj:
-                new_metadata = item.get('metadata', {})
-                new_metadata['resourceVersion'] = server_apiobj.resource_version()
-                item['metadata'] = new_metadata
+                new_metadata = item.get("metadata", {})
+                new_metadata["resourceVersion"] = server_apiobj.resource_version()
+                item["metadata"] = new_metadata
 
-    return __new_objects_action_selector("apply",
-                                         cmd_args=["-f", "-", base_args, cmd_args],
-                                         stdin_obj=m,
-                                         no_namespace=namespace_detected,
-                                         auto_raise=auto_raise)
+    return __new_objects_action_selector(
+        "apply",
+        cmd_args=["-f", "-", base_args, cmd_args],
+        stdin_obj=m,
+        no_namespace=namespace_detected,
+        auto_raise=auto_raise,
+    )
 
 
-def replace(str_dict_model_apiobject_or_list_thereof, force=False, cmd_args=None, auto_raise=True):
+def replace(
+    str_dict_model_apiobject_or_list_thereof,
+    force=False,
+    cmd_args=None,
+    auto_raise=True,
+):
     """
     :param str_dict_model_apiobject_or_list_thereof: The definition of one or more API object.
         Can be string containing json or yaml, a python dict, an openshift.Model, or an openshift.APIObject.
@@ -613,7 +702,7 @@ def replace(str_dict_model_apiobject_or_list_thereof, force=False, cmd_args=None
     """
     base_args = list()
     if force:
-        base_args.append('--force')
+        base_args.append("--force")
 
     items, namespace_detected = _to_dict_list(str_dict_model_apiobject_or_list_thereof)
 
@@ -621,21 +710,24 @@ def replace(str_dict_model_apiobject_or_list_thereof, force=False, cmd_args=None
     if not items:
         return selector([])
 
-    m = {
-        'kind': 'List',
-        'apiVersion': 'v1',
-        'metadata': {},
-        'items': items
-    }
+    m = {"kind": "List", "apiVersion": "v1", "metadata": {}, "items": items}
 
-    return __new_objects_action_selector("replace",
-                                         cmd_args=["-f", "-", base_args, cmd_args],
-                                         stdin_obj=m,
-                                         no_namespace=namespace_detected,
-                                         auto_raise=auto_raise)
+    return __new_objects_action_selector(
+        "replace",
+        cmd_args=["-f", "-", base_args, cmd_args],
+        stdin_obj=m,
+        no_namespace=namespace_detected,
+        auto_raise=auto_raise,
+    )
 
 
-def build_configmap_dict(configmap_name, dir_path_or_paths=None, dir_ext_include=None, data_map=None, obj_labels=None):
+def build_configmap_dict(
+    configmap_name,
+    dir_path_or_paths=None,
+    dir_ext_include=None,
+    data_map=None,
+    obj_labels=None,
+):
     """
     Creates a python dict structure for a configmap (if remains to the caller to send
     the yaml to the server with create()). This method does not use/require oc to be resident
@@ -677,24 +769,30 @@ def build_configmap_dict(configmap_name, dir_path_or_paths=None, dir_ext_include
                         if file_extension.lower() not in dir_ext_include:
                             continue
 
-                    with io.open(path, mode='r', encoding="utf-8") as f:
+                    with io.open(path, mode="r", encoding="utf-8") as f:
                         file_basename = os.path.basename(path)
                         dm[file_basename] = f.read()
 
     d = {
-        'kind': 'ConfigMap',
-        'apiVersion': 'v1',
-        'metadata': {
-            'name': configmap_name,
-            'labels': obj_labels,
+        "kind": "ConfigMap",
+        "apiVersion": "v1",
+        "metadata": {
+            "name": configmap_name,
+            "labels": obj_labels,
         },
-        'data': dm
+        "data": dm,
     }
 
     return d
 
 
-def build_secret_dict(secret_name, dir_path_or_paths=None, dir_ext_include=None, data_map=None, obj_labels=None):
+def build_secret_dict(
+    secret_name,
+    dir_path_or_paths=None,
+    dir_ext_include=None,
+    data_map=None,
+    obj_labels=None,
+):
     """
     Creates a python dict structure for a secret (it remains to the caller to send
     the yaml to the server with create()). This method does not use/require oc to be resident
@@ -739,18 +837,18 @@ def build_secret_dict(secret_name, dir_path_or_paths=None, dir_ext_include=None,
                         continue
 
                 if os.path.isfile(path):
-                    with io.open(path, mode='r', encoding="utf-8") as f:
+                    with io.open(path, mode="r", encoding="utf-8") as f:
                         file_basename = os.path.basename(path)
                         dm[file_basename] = base64.b64encode(f.read())
 
     d = {
-        'kind': 'Secret',
-        'apiVersion': 'v1',
-        'metadata': {
-            'name': secret_name,
-            'labels': obj_labels,
+        "kind": "Secret",
+        "apiVersion": "v1",
+        "metadata": {
+            "name": secret_name,
+            "labels": obj_labels,
         },
-        'data': dm
+        "data": dm,
     }
 
     return d
@@ -766,11 +864,13 @@ class ImageRegistryAuthInfo(object):
         self.username = username
         self.password = password
         if not email:
-            email = '{}@example.org'.format(username)
+            email = "{}@example.org".format(username)
         self.email = email
 
 
-def build_secret_dockerconfigjson(secret_name, image_registry_auth_infos, obj_labels=None):
+def build_secret_dockerconfigjson(
+    secret_name, image_registry_auth_infos, obj_labels=None
+):
     """
     Creates a python dict structure for a 'kubernetes.io/dockerconfigjson' secret (it remains to the caller to send
     the yaml to the server with create()). This method does not use/require oc to be resident
@@ -787,36 +887,36 @@ def build_secret_dockerconfigjson(secret_name, image_registry_auth_infos, obj_la
     auths = {}  # A map of registry urls to a map with a single element called 'auth'
 
     for ira in image_registry_auth_infos:
-        b64_username_password = base64.b64encode('{}:{}'.format(ira.username, ira.password).encode()).decode()
-        auths[ira.registry_url] = {
-            'auth': b64_username_password
-        }
+        b64_username_password = base64.b64encode(
+            "{}:{}".format(ira.username, ira.password).encode()
+        ).decode()
+        auths[ira.registry_url] = {"auth": b64_username_password}
 
     # this is the content you would see if you cat your dockerconfig json file
-    dockerconfig = {
-        'auths': auths
-    }
+    dockerconfig = {"auths": auths}
 
     # Lazy load to avoid dragging unnecessary dependencies
     import json
 
     # Next, base64 encode the entire file.
-    b64_dockerconfigjson = base64.b64encode(json.dumps(dockerconfig, indent=4).encode()).decode()
+    b64_dockerconfigjson = base64.b64encode(
+        json.dumps(dockerconfig, indent=4).encode()
+    ).decode()
 
     # And stick it into the secret's data
     data = {
-        '.dockerconfigjson': b64_dockerconfigjson,
+        ".dockerconfigjson": b64_dockerconfigjson,
     }
 
     d = {
-        'kind': 'Secret',
-        'apiVersion': 'v1',
-        'metadata': {
-            'name': secret_name,
-            'labels': obj_labels,
+        "kind": "Secret",
+        "apiVersion": "v1",
+        "metadata": {
+            "name": secret_name,
+            "labels": obj_labels,
         },
-        'type': 'kubernetes.io/dockerconfigjson',
-        'data': data
+        "type": "kubernetes.io/dockerconfigjson",
+        "data": data,
     }
 
     return d
@@ -831,116 +931,120 @@ def build_list(*args):
     return _to_dict_list(args)
 
 
-def build_pod_simple(pod_name, image,
-                     command=None,
-                     namespace=None,
-                     labels=None,
-                     working_dir=None,
-                     port=None,
-                     host_network=False,
-                     node_name=None,
-                     restart_policy=None,
-                     termination_grace_period=None,
-                     service_account_name=None,
-                     privileged=False,
-                     host_mount=False,
-                     api_version='v1',
-                     ):
+def build_pod_simple(
+    pod_name,
+    image,
+    command=None,
+    namespace=None,
+    labels=None,
+    working_dir=None,
+    port=None,
+    host_network=False,
+    node_name=None,
+    restart_policy=None,
+    termination_grace_period=None,
+    service_account_name=None,
+    privileged=False,
+    host_mount=False,
+    api_version="v1",
+):
     if not labels:
         labels = {}
 
     metadata = {
-        'name': pod_name,
-        'labels': labels,
+        "name": pod_name,
+        "labels": labels,
     }
 
     if namespace:
-        metadata['namespace'] = namespace
+        metadata["namespace"] = namespace
 
     container0 = {
-        'name': pod_name,
-        'image': image,
+        "name": pod_name,
+        "image": image,
     }
 
     if port:
         ports = [
             {
-                'containerPort': port,
+                "containerPort": port,
             },
         ]
-        container0['ports'] = ports
+        container0["ports"] = ports
 
     if command:
         # If command is not a list of some sort, make it into one
         if not util.is_collection_type(command):
             command = [command]
-        container0['command'] = command
+        container0["command"] = command
 
     if working_dir:
-        container0['workingDir'] = working_dir
+        container0["workingDir"] = working_dir
 
     if privileged or host_mount:
-        container0['securityContext'] = {
-            'privileged': True,
+        container0["securityContext"] = {
+            "privileged": True,
         }
 
     if host_mount:
-        container0['volumeMounts'] = [
+        container0["volumeMounts"] = [
             {
-                'name': 'host-volume',
-                'mountPath': '/host',
-                'readOnly': True,
+                "name": "host-volume",
+                "mountPath": "/host",
+                "readOnly": True,
             }
         ]
 
     spec = {
-        'containers': [container0],
+        "containers": [container0],
     }
 
     if restart_policy is not None:
-        spec['restartPolicy'] = restart_policy
+        spec["restartPolicy"] = restart_policy
 
     if termination_grace_period is not None:
-        spec['terminationGracePeriodSeconds'] = termination_grace_period
+        spec["terminationGracePeriodSeconds"] = termination_grace_period
 
     if service_account_name:
-        spec['serviceAccountName'] = service_account_name
+        spec["serviceAccountName"] = service_account_name
 
     if host_network:
-        spec['host_network'] = host_network
+        spec["host_network"] = host_network
 
     if node_name:
-        spec['node_name'] = node_name
+        spec["node_name"] = node_name
 
     if host_mount:
-        spec['volumes'] = [
+        spec["volumes"] = [
             {
-                'name': 'host-volume',
-                'hostPath': {
-                    'path': '/',
-                }
+                "name": "host-volume",
+                "hostPath": {
+                    "path": "/",
+                },
             }
         ]
 
     pod = {
-        'apiVersion': api_version,
-        'kind': 'Pod',
-        'metadata': metadata,
-        'spec': spec,
+        "apiVersion": api_version,
+        "kind": "Pod",
+        "metadata": metadata,
+        "spec": spec,
     }
 
     return pod
 
 
-def build_service_simple(service_name,
-                         selector,
-                         target_port,
-                         namespace=None,
-                         protocol='TCP',
-                         service_port=None,
-                         labels=None,
-                         type='ClusterIP',
-                         api_version='v1'):
+def build_service_simple(
+    service_name,
+    selector,
+    target_port,
+    namespace=None,
+    protocol="TCP",
+    service_port=None,
+    labels=None,
+    type="ClusterIP",
+    api_version="v1",
+):
     if not service_port:
         service_port = target_port
 
@@ -948,31 +1052,31 @@ def build_service_simple(service_name,
         labels = {}
 
     metadata = {
-        'name': service_name,
-        'labels': labels,
+        "name": service_name,
+        "labels": labels,
     }
 
     if namespace:
-        metadata['namespace'] = namespace
+        metadata["namespace"] = namespace
 
     spec = {
-        'ports': [
+        "ports": [
             {
-                'name': '{}'.format(target_port),
-                'port': int(service_port),
-                'protocol': protocol,
-                'targetPort': int(target_port),
+                "name": "{}".format(target_port),
+                "port": int(service_port),
+                "protocol": protocol,
+                "targetPort": int(target_port),
             }
         ],
-        'selector': selector,
-        'type': type,
+        "selector": selector,
+        "type": type,
     }
 
     service = {
-        'apiVersion': api_version,
-        'kind': 'Service',
-        'metadata': metadata,
-        'spec': spec,
+        "apiVersion": api_version,
+        "kind": "Service",
+        "metadata": metadata,
+        "spec": spec,
     }
 
     return service
@@ -1008,12 +1112,14 @@ def build_secret_dockerconfig(secret_name, image_registry_auth_infos, obj_labels
 
     for ira in image_registry_auth_infos:
         b64_password = base64.b64encode(ira.password)
-        b64_username_password = base64.b64encode('{}:{}'.format(ira.username, ira.password))
+        b64_username_password = base64.b64encode(
+            "{}:{}".format(ira.username, ira.password)
+        )
         auths[ira.registry_url] = {
-            'username': ira.username,
-            'password': b64_password,
-            'email': ira.email,
-            'auth': b64_username_password
+            "username": ira.username,
+            "password": b64_password,
+            "email": ira.email,
+            "auth": b64_username_password,
         }
 
     # Lazy load to avoid dragging unnecessary dependencies
@@ -1024,50 +1130,48 @@ def build_secret_dockerconfig(secret_name, image_registry_auth_infos, obj_labels
 
     # And stick it into the secret's data
     data = {
-        '.dockercfg': b64_auths,
+        ".dockercfg": b64_auths,
     }
 
     d = {
-        'kind': 'Secret',
-        'apiVersion': 'v1',
-        'metadata': {
-            'name': secret_name,
-            'labels': obj_labels,
+        "kind": "Secret",
+        "apiVersion": "v1",
+        "metadata": {
+            "name": secret_name,
+            "labels": obj_labels,
         },
-        'type': 'kubernetes.io/dockercfg',
-        'data': data
+        "type": "kubernetes.io/dockercfg",
+        "data": data,
     }
 
     return d
 
 
-def build_imagestream_simple(imagestream_name,
-                             namespace=None,
-                             labels=None,
-                             local_lookup_policy=False,
-                             api_version='image.openshift.io/v1'):
+def build_imagestream_simple(
+    imagestream_name,
+    namespace=None,
+    labels=None,
+    local_lookup_policy=False,
+    api_version="image.openshift.io/v1",
+):
     if not labels:
         labels = {}
 
     metadata = {
-        'name': imagestream_name,
-        'labels': labels,
+        "name": imagestream_name,
+        "labels": labels,
     }
 
     if namespace:
-        metadata['namespace'] = namespace
+        metadata["namespace"] = namespace
 
-    spec = {
-        'lookupPolicy': {
-                'local': local_lookup_policy
-        }
-    }
+    spec = {"lookupPolicy": {"local": local_lookup_policy}}
 
     imagestream = {
-        'apiVersion': api_version,
-        'kind': 'ImageStream',
-        'metadata': metadata,
-        'spec': spec,
+        "apiVersion": api_version,
+        "kind": "ImageStream",
+        "metadata": metadata,
+        "spec": spec,
     }
 
     return imagestream
@@ -1080,18 +1184,20 @@ def update_api_resources():
     the default blob of resources in naming.py is no accurate for your cluster / use case.
     --verbs=get limits the returned resources to those you can actually 'oc get'.
     """
-    res = invoke('api-resources', cmd_args=['--verbs=get'])
+    res = invoke("api-resources", cmd_args=["--verbs=get"])
     naming.process_api_resources_output(res.out())
 
 
-def dumpinfo_apiobject(output_dir,
-                       obj,
-                       limit_daemonsets_to_nodes=None,
-                       log_timestamps=True,
-                       logs_since=None,
-                       logs_limit_bytes=None,
-                       logs_tail=-1,
-                       status_printer=eprint):
+def dumpinfo_apiobject(
+    output_dir,
+    obj,
+    limit_daemonsets_to_nodes=None,
+    log_timestamps=True,
+    logs_since=None,
+    logs_limit_bytes=None,
+    logs_tail=-1,
+    status_printer=eprint,
+):
     name = obj.name()
     util.mkdir_p(output_dir)
     prefix = os.path.join(output_dir, name)
@@ -1099,11 +1205,11 @@ def dumpinfo_apiobject(output_dir,
     if not status_printer:
         status_printer = lambda: None
 
-    status_printer('Gathering information for {}'.format(obj.fqname()))
+    status_printer("Gathering information for {}".format(obj.fqname()))
 
     with no_tracking():
 
-        if obj.is_kind(['pod', 'build']):
+        if obj.is_kind(["pod", "build"]):
 
             if limit_daemonsets_to_nodes is not None:
                 # if this is a pod and a member of a daemonset, only output information
@@ -1111,41 +1217,49 @@ def dumpinfo_apiobject(output_dir,
 
                 ldn = []
                 for node_name in limit_daemonsets_to_nodes:
-                    ldn.append(naming.qualify_name(node_name, 'node'))
+                    ldn.append(naming.qualify_name(node_name, "node"))
 
-                if obj.is_kind('pod') and obj.model.metadata.ownerReferences.can_match({
-                    'kind': 'DaemonSet'
-                }):
-                    running_on_node = naming.qualify_name(obj.model.spec.nodeName, 'node')
+                if obj.is_kind("pod") and obj.model.metadata.ownerReferences.can_match(
+                    {"kind": "DaemonSet"}
+                ):
+                    running_on_node = naming.qualify_name(
+                        obj.model.spec.nodeName, "node"
+                    )
                     if running_on_node not in ldn:
                         status_printer(
-                            'Skipping information collection for daemonset pod on non-collected node: {}'.format(
-                                obj.fqname()))
+                            "Skipping information collection for daemonset pod on non-collected node: {}".format(
+                                obj.fqname()
+                            )
+                        )
                         return
 
-            with io.open(prefix + '.logs.txt', mode='w', encoding="utf-8") as f:
-                obj.print_logs(f,
-                               timestamps=log_timestamps,
-                               since=logs_since,
-                               tail=logs_tail,
-                               limit_bytes=logs_limit_bytes)
+            with io.open(prefix + ".logs.txt", mode="w", encoding="utf-8") as f:
+                obj.print_logs(
+                    f,
+                    timestamps=log_timestamps,
+                    since=logs_since,
+                    tail=logs_tail,
+                    limit_bytes=logs_limit_bytes,
+                )
 
-        with io.open(prefix + '.describe.txt', mode='w', encoding="utf-8") as f:
+        with io.open(prefix + ".describe.txt", mode="w", encoding="utf-8") as f:
             f.write(obj.describe(auto_raise=False))
 
-        if not naming.kind_matches(obj.kind(), 'secret'):
-            with io.open(prefix + '.json', mode='w', encoding="utf-8") as f:
+        if not naming.kind_matches(obj.kind(), "secret"):
+            with io.open(prefix + ".json", mode="w", encoding="utf-8") as f:
                 f.write(obj.as_json())
 
 
-def dumpinfo_node(output_dir,
-                  node,
-                  critical_journal_units=['atomic-openshift-node', 'crio', 'docker'],
-                  sdn_pods=None,
-                  fluentd_pods=None,
-                  num_combined_journal_entries=10000,
-                  num_critical_journal_entries=10000,
-                  status_printer=eprint):
+def dumpinfo_node(
+    output_dir,
+    node,
+    critical_journal_units=["atomic-openshift-node", "crio", "docker"],
+    sdn_pods=None,
+    fluentd_pods=None,
+    num_combined_journal_entries=10000,
+    num_critical_journal_entries=10000,
+    status_printer=eprint,
+):
     node_dir = util.mkdir_p(output_dir)
 
     if sdn_pods is None:
@@ -1159,66 +1273,119 @@ def dumpinfo_node(output_dir,
         with no_tracking():
             dumpinfo_apiobject(node_dir, node)
 
-            node_sdn_pod = next((pod for pod in sdn_pods if pod.model.spec.nodeName == node.name()), None)
+            node_sdn_pod = next(
+                (pod for pod in sdn_pods if pod.model.spec.nodeName == node.name()),
+                None,
+            )
             if node_sdn_pod:
-                capture_action = node_sdn_pod.execute(cmd_to_exec=['iptables-save'],
-                                                      container_name='sdn',
-                                                      auto_raise=False)
+                capture_action = node_sdn_pod.execute(
+                    cmd_to_exec=["iptables-save"],
+                    container_name="sdn",
+                    auto_raise=False,
+                )
 
-                with io.open(os.path.join(node_dir, 'iptables.txt'), mode='w', encoding='utf-8') as f:
+                with io.open(
+                    os.path.join(node_dir, "iptables.txt"), mode="w", encoding="utf-8"
+                ) as f:
                     f.write(capture_action.out())
                     f.write(capture_action.err())
 
             # If possible, find a fluentd pod that is scheduled on the node. The fluentd pod mounts in the
             # host's journal directories -- so we capture information for debug.
-            node_fluentd_pod = next((pod for pod in fluentd_pods if pod.model.spec.nodeName == node.name()), None)
+            node_fluentd_pod = next(
+                (pod for pod in fluentd_pods if pod.model.spec.nodeName == node.name()),
+                None,
+            )
             if node_fluentd_pod:
 
-                status_printer('Collecting combined journal from: {}'.format(node.name()))
-                with io.open(os.path.join(node_dir, 'combined.journal.export'), mode='w', encoding="utf-8") as f:
-                    capture_action = node_fluentd_pod.execute(cmd_to_exec=[
-                        'journalctl',
-                        '-D', '/var/log/journal',
-                        '-o', 'export',
-                        '-n', num_combined_journal_entries,
-                    ],
-                        auto_raise=False)
+                status_printer(
+                    "Collecting combined journal from: {}".format(node.name())
+                )
+                with io.open(
+                    os.path.join(node_dir, "combined.journal.export"),
+                    mode="w",
+                    encoding="utf-8",
+                ) as f:
+                    capture_action = node_fluentd_pod.execute(
+                        cmd_to_exec=[
+                            "journalctl",
+                            "-D",
+                            "/var/log/journal",
+                            "-o",
+                            "export",
+                            "-n",
+                            num_combined_journal_entries,
+                        ],
+                        auto_raise=False,
+                    )
                     f.write(capture_action.out())
 
                 # In case extraneous events are flooding, isolate important services as well
                 if critical_journal_units:
-                    status_printer('Collecting critical services journal from: {}'.format(node.name()))
-                    with io.open(os.path.join(node_dir, 'critical.journal.export'), mode='w', encoding="utf-8") as f:
+                    status_printer(
+                        "Collecting critical services journal from: {}".format(
+                            node.name()
+                        )
+                    )
+                    with io.open(
+                        os.path.join(node_dir, "critical.journal.export"),
+                        mode="w",
+                        encoding="utf-8",
+                    ) as f:
                         cmd_to_exec = [
-                            'journalctl',
-                            '-D', '/var/log/journal',  # Where fluentd mounts hosts journal
-                            '-o', 'export',  # This can be converted back into .journal with systemd-journal-remote
-                            '-n', num_critical_journal_entries,  # Number of recent events to gather critical services
+                            "journalctl",
+                            "-D",
+                            "/var/log/journal",  # Where fluentd mounts hosts journal
+                            "-o",
+                            "export",  # This can be converted back into .journal with systemd-journal-remote
+                            "-n",
+                            num_critical_journal_entries,  # Number of recent events to gather critical services
                         ]
 
                         # include all the units the dump operation should focus on
                         for unit in critical_journal_units:
-                            cmd_to_exec.extend(['-u', unit])
+                            cmd_to_exec.extend(["-u", unit])
 
-                        capture_action = node_fluentd_pod.execute(cmd_to_exec=cmd_to_exec,
-                                                                  auto_raise=False)
+                        capture_action = node_fluentd_pod.execute(
+                            cmd_to_exec=cmd_to_exec, auto_raise=False
+                        )
                         f.write(capture_action.out())
             else:
-                status_printer('Unable to find a fluentd pod in the cluster for node {}'.format(node.name()))
+                status_printer(
+                    "Unable to find a fluentd pod in the cluster for node {}".format(
+                        node.name()
+                    )
+                )
 
     except Exception as e:
-        status_printer('Error collecting node information: {}\n{}'.format(node.name(), traceback.format_exc()))
+        status_printer(
+            "Error collecting node information: {}\n{}".format(
+                node.name(), traceback.format_exc()
+            )
+        )
 
 
-def dumpinfo_project(dir,
-                     project_name,
-                     kinds=['ds', 'dc', 'build', 'statefulset', 'deployment', 'pod', 'rs', 'rc', 'configmap'],
-                     limit_daemonsets_to_nodes=None,
-                     log_timestamps=True,
-                     logs_since=None,
-                     logs_tail=-1,
-                     logs_limit_bytes=None,
-                     status_printer=eprint):
+def dumpinfo_project(
+    dir,
+    project_name,
+    kinds=[
+        "ds",
+        "dc",
+        "build",
+        "statefulset",
+        "deployment",
+        "pod",
+        "rs",
+        "rc",
+        "configmap",
+    ],
+    limit_daemonsets_to_nodes=None,
+    log_timestamps=True,
+    logs_since=None,
+    logs_tail=-1,
+    logs_limit_bytes=None,
+    status_printer=eprint,
+):
     """
     Populates a specified directory with a significant amount of data for a given project.
     :param dir: The output directory
@@ -1236,52 +1403,61 @@ def dumpinfo_project(dir,
     :return:
     """
 
-    project_name = naming.qualify_name(project_name, 'project')
+    project_name = naming.qualify_name(project_name, "project")
 
     if not status_printer:
         status_printer = lambda: None
 
-    status_printer(u'Collecting info for project: {}'.format(project_name))
+    status_printer("Collecting info for project: {}".format(project_name))
 
     util.mkdir_p(dir)
     with no_tracking():
 
         # if the project does not exist, just a leave a file saying we tried
         if selector(project_name).count_existing() == 0:
-            with io.open(os.path.join(dir, 'not-found'), mode='w', encoding="utf-8") as f:
-                f.write(u'{} was not found'.format(project_name))
+            with io.open(
+                os.path.join(dir, "not-found"), mode="w", encoding="utf-8"
+            ) as f:
+                f.write("{} was not found".format(project_name))
             return
 
         with project(project_name):
 
-            with io.open(os.path.join(dir, 'status.txt'), mode='w', encoding="utf-8") as f:
-                f.write(six.text_type(invoke('status').out()))
+            with io.open(
+                os.path.join(dir, "status.txt"), mode="w", encoding="utf-8"
+            ) as f:
+                f.write(six.text_type(invoke("status").out()))
 
             for obj in selector(kinds).objects(ignore_not_found=True):
                 obj_dir = os.path.join(dir, obj.kind())
-                dumpinfo_apiobject(obj_dir, obj,
-                                   limit_daemonsets_to_nodes=limit_daemonsets_to_nodes,
-                                   logs_since=logs_since,
-                                   logs_tail=logs_tail,
-                                   logs_limit_bytes=logs_limit_bytes,
-                                   log_timestamps=log_timestamps,
-                                   status_printer=status_printer)
+                dumpinfo_apiobject(
+                    obj_dir,
+                    obj,
+                    limit_daemonsets_to_nodes=limit_daemonsets_to_nodes,
+                    logs_since=logs_since,
+                    logs_tail=logs_tail,
+                    logs_limit_bytes=logs_limit_bytes,
+                    log_timestamps=log_timestamps,
+                    status_printer=status_printer,
+                )
 
 
-def dumpinfo_system(base_dir,
-                    dump_core_projects=True,
-                    dump_restricted_projects=False,
-                    additional_nodes=None,
-                    additional_projects=None,
-                    additional_namespaced_kinds=None,
-                    include_crd_kinds=False,
-                    num_combined_journal_entries=10000,
-                    num_critical_journal_entries=10000,
-                    log_timestamps=True,
-                    logs_since=None,
-                    logs_tail=-1,
-                    logs_limit_bytes=None,
-                    status_printer=eprint):
+def dumpinfo_system(
+    base_dir,
+    dump_core_projects=True,
+    dump_restricted_projects=False,
+    additional_nodes=None,
+    additional_projects=None,
+    additional_namespaced_kinds=None,
+    include_crd_kinds=False,
+    num_combined_journal_entries=10000,
+    num_critical_journal_entries=10000,
+    log_timestamps=True,
+    logs_since=None,
+    logs_tail=-1,
+    logs_limit_bytes=None,
+    status_printer=eprint,
+):
     """
     Dumps object definitions, pod logs, node journals, etc. to a directory structure.
     :param base_dir: The directory in which to create the dump structure
@@ -1321,7 +1497,19 @@ def dumpinfo_system(base_dir,
     if not status_printer:
         status_printer = lambda: None
 
-    kinds = set(['ds', 'dc', 'build', 'statefulset', 'deployment', 'pod', 'rs', 'rc', 'configmap'])
+    kinds = set(
+        [
+            "ds",
+            "dc",
+            "build",
+            "statefulset",
+            "deployment",
+            "pod",
+            "rs",
+            "rc",
+            "configmap",
+        ]
+    )
     kinds.update(additional_namespaced_kinds)
 
     # A large amount of stdout is going to be generated by streaming logs from pods --
@@ -1333,92 +1521,115 @@ def dumpinfo_system(base_dir,
             # master team should allow CRDs to express whether they contain sensitive information and
             # remove this restriction. As such, turning this flag True is not recommended until
             # master acts on this.
-            for crd_obj in selector('crd').objects():
-                if crd_obj.model.spec.scope == 'Namespaced':
+            for crd_obj in selector("crd").objects():
+                if crd_obj.model.spec.scope == "Namespaced":
                     kinds.add(crd_obj.name())
 
         sdn_pods = []  # Prevent errors by using empty list if we can't find sdn pods
         try:
-            with project('openshift-sdn'):
+            with project("openshift-sdn"):
                 # Find all pods created by the sdn daemonset.
-                sdn_pods = selector('ds/sdn').object().get_owned('pod')
-                status_printer(u'Found {} sdn pods on cluster'.format(len(sdn_pods)))
+                sdn_pods = selector("ds/sdn").object().get_owned("pod")
+                status_printer("Found {} sdn pods on cluster".format(len(sdn_pods)))
         except Exception as sdn_err:
-            status_printer(u'Unable to get openshift-sdn pods: {}'.format(sdn_err))
+            status_printer("Unable to get openshift-sdn pods: {}".format(sdn_err))
 
         # Use all_namespaces because logging components could be in 'logging' (older) or 'openshift-logging' (newer)
-        fluentd_pods = selector('pod', labels={'component': 'fluentd'}, all_namespaces=True).objects()
-        status_printer(u'Found {} fluentd pods on cluster'.format(len(fluentd_pods)))
+        fluentd_pods = selector(
+            "pod", labels={"component": "fluentd"}, all_namespaces=True
+        ).objects()
+        status_printer("Found {} fluentd pods on cluster".format(len(fluentd_pods)))
 
-        overview_dir = util.mkdir_p(os.path.join(base_dir, 'overview'))
-        with io.open(os.path.join(overview_dir, 'nodes.json'), mode='w', encoding='utf-8') as f:
-            f.write(selector('nodes').object_json())
+        overview_dir = util.mkdir_p(os.path.join(base_dir, "overview"))
+        with io.open(
+            os.path.join(overview_dir, "nodes.json"), mode="w", encoding="utf-8"
+        ) as f:
+            f.write(selector("nodes").object_json())
 
-        with io.open(os.path.join(overview_dir, 'versions'), mode='w', encoding='utf-8') as f:
-            f.write(u'Sever version: {}\n'.format(get_server_version()))
-            f.write(u'Client version: {}\n'.format(get_client_version()))
+        with io.open(
+            os.path.join(overview_dir, "versions"), mode="w", encoding="utf-8"
+        ) as f:
+            f.write("Sever version: {}\n".format(get_server_version()))
+            f.write("Client version: {}\n".format(get_client_version()))
 
         # Start with a base set of master nodes and append additional nodes.
-        node_qnames = set(selector('node', labels={'!node-role.kubernetes.io/master': None}).qnames())
+        node_qnames = set(
+            selector("node", labels={"!node-role.kubernetes.io/master": None}).qnames()
+        )
         for node_name in additional_nodes:
-            node_name = naming.qualify_name(node_name.lower(), 'node')  # make sure we have node/xyz
+            node_name = naming.qualify_name(
+                node_name.lower(), "node"
+            )  # make sure we have node/xyz
             node_qnames.add(node_name)
 
-        status_printer(u'Attempting to gather on nodes: {}\n'.format(node_qnames))
+        status_printer("Attempting to gather on nodes: {}\n".format(node_qnames))
         node_sel = selector(node_qnames)
 
         for node in node_sel.objects():
-            dumpinfo_node(os.path.join(base_dir, 'node', node.name()),
-                          node, sdn_pods=sdn_pods, fluentd_pods=fluentd_pods,
-                          num_critical_journal_entries=num_critical_journal_entries,
-                          num_combined_journal_entries=num_combined_journal_entries,
-                          status_printer=status_printer,
-                          )
+            dumpinfo_node(
+                os.path.join(base_dir, "node", node.name()),
+                node,
+                sdn_pods=sdn_pods,
+                fluentd_pods=fluentd_pods,
+                num_critical_journal_entries=num_critical_journal_entries,
+                num_combined_journal_entries=num_combined_journal_entries,
+                status_printer=status_printer,
+            )
 
         projects = set()
         if dump_core_projects or dump_restricted_projects:
-            projects.update(['default',
-                             'openshift',
-                             'openshift-sdn',
-                             'kube-system',
-                             'openshift-config',
-                             'openshift-node',
-                             'openshift-console',
-                             'openshift-infra',
-                             ])
+            projects.update(
+                [
+                    "default",
+                    "openshift",
+                    "openshift-sdn",
+                    "kube-system",
+                    "openshift-config",
+                    "openshift-node",
+                    "openshift-console",
+                    "openshift-infra",
+                ]
+            )
 
         # if dumping restricted projects, add to core projects those which start with openshift-*, kube-*
         if dump_restricted_projects:
-            projects.update([proj.name() for proj in selector('projects').objects() if
-                             proj.name().startswith(('openshift-', 'kube-'))])
+            projects.update(
+                [
+                    proj.name()
+                    for proj in selector("projects").objects()
+                    if proj.name().startswith(("openshift-", "kube-"))
+                ]
+            )
 
         # dump projects named by caller
         projects.update(additional_projects)
 
         for project_name in projects:
-            dumpinfo_project(os.path.join(base_dir, 'project', project_name),
-                             project_name,
-                             kinds=kinds,
-                             limit_daemonsets_to_nodes=node_qnames,
-                             log_timestamps=log_timestamps,
-                             logs_since=logs_since,
-                             logs_tail=logs_tail,
-                             logs_limit_bytes=logs_limit_bytes,
-                             status_printer=status_printer,
-                             )
+            dumpinfo_project(
+                os.path.join(base_dir, "project", project_name),
+                project_name,
+                kinds=kinds,
+                limit_daemonsets_to_nodes=node_qnames,
+                log_timestamps=log_timestamps,
+                logs_since=logs_since,
+                logs_tail=logs_tail,
+                logs_limit_bytes=logs_limit_bytes,
+                status_printer=status_printer,
+            )
 
 
-def node_ssh_client(apiobj_node_name_or_qname=None,
-                    port=22,
-                    username=None,
-                    password=None,
-                    key_filename=None,
-                    auto_add_host=True,
-                    connect_timeout=600,
-                    through_client_host=True,
-                    address_type_pref="ExternalDNS,ExternalIP,Hostname",
-                    paramiko_connect_extras=None,
-                    ):
+def node_ssh_client(
+    apiobj_node_name_or_qname=None,
+    port=22,
+    username=None,
+    password=None,
+    key_filename=None,
+    auto_add_host=True,
+    connect_timeout=600,
+    through_client_host=True,
+    address_type_pref="ExternalDNS,ExternalIP,Hostname",
+    paramiko_connect_extras=None,
+):
     """
     Returns a paramiko ssh client connected to the named cluster node. The caller is responsible for closing the
     connection -- use as a contextmanager is recommended.
@@ -1450,18 +1661,26 @@ def node_ssh_client(apiobj_node_name_or_qname=None,
         apiobj = apiobj_node_name_or_qname
 
     else:
-        qname = naming.qualify_name(apiobj_node_name_or_qname, 'node')
+        qname = naming.qualify_name(apiobj_node_name_or_qname, "node")
         apiobj = selector(qname).object()
 
     address_entries = apiobj.model.status.addresses
 
     if address_entries is Missing:
-        raise IOError("Error finding addresses associated with: {}".format(apiobj.qname()))
+        raise IOError(
+            "Error finding addresses associated with: {}".format(apiobj.qname())
+        )
 
-    for address_type in address_type_pref.split(','):
+    for address_type in address_type_pref.split(","):
         # Find the first address of the preferred type:
         address = next(
-            (entry.address for entry in address_entries if entry.type.lower() == address_type.lower().strip()), None)
+            (
+                entry.address
+                for entry in address_entries
+                if entry.type.lower() == address_type.lower().strip()
+            ),
+            None,
+        )
         if address:
             ssh_client = paramiko.SSHClient()
             ssh_client.load_system_host_keys()
@@ -1475,8 +1694,10 @@ def node_ssh_client(apiobj_node_name_or_qname=None,
                 # If there is a client host, initiate node ssh connections from it
                 host_transport = host_ssh_client.get_transport()
                 node_addr = (address, port)
-                local_addr = ('127.0.0.1', 0)
-                host_sock = host_transport.open_channel("direct-tcpip", node_addr, local_addr)
+                local_addr = ("127.0.0.1", 0)
+                host_sock = host_transport.open_channel(
+                    "direct-tcpip", node_addr, local_addr
+                )
 
                 # If we are tunneling through another connection, use authentication from that
                 # connection. e.g. continue on as root if root was used to connect.
@@ -1487,30 +1708,43 @@ def node_ssh_client(apiobj_node_name_or_qname=None,
                     password = cur_context().get_ssh_password()
 
             paramiko_connect_extras = paramiko_connect_extras or {}
-            ssh_client.connect(hostname=address, port=port, username=username,
-                               password=password, key_filename=key_filename,
-                               timeout=connect_timeout, sock=host_sock,
-                               **paramiko_connect_extras)
+            ssh_client.connect(
+                hostname=address,
+                port=port,
+                username=username,
+                password=password,
+                key_filename=key_filename,
+                timeout=connect_timeout,
+                sock=host_sock,
+                **paramiko_connect_extras
+            )
 
             # Enable agent fowarding
-            paramiko.agent.AgentRequestHandler(ssh_client.get_transport().open_session())
+            paramiko.agent.AgentRequestHandler(
+                ssh_client.get_transport().open_session()
+            )
 
             return ssh_client
 
-    raise IOError("Unable to find any address with type ({}) for: {}".format(address_type_pref, apiobj.qname()))
+    raise IOError(
+        "Unable to find any address with type ({}) for: {}".format(
+            address_type_pref, apiobj.qname()
+        )
+    )
 
 
-def node_ssh_await(apiobj_node_name_or_qname=None,
-                   timeout_seconds=600,
-                   port=22,
-                   username=None,
-                   password=None,
-                   key_filename=None,
-                   auto_add_host=True,
-                   through_client_host=True,
-                   address_type_pref="ExternalDNS,ExternalIP,Hostname",
-                   paramiko_connect_extras=None
-                   ):
+def node_ssh_await(
+    apiobj_node_name_or_qname=None,
+    timeout_seconds=600,
+    port=22,
+    username=None,
+    password=None,
+    key_filename=None,
+    auto_add_host=True,
+    through_client_host=True,
+    address_type_pref="ExternalDNS,ExternalIP,Hostname",
+    paramiko_connect_extras=None,
+):
     """
     Periodically attempts to connect to a node's ssh server.
     :param apiobj_node_name_or_qname: The name of the node or the apiobject representing the node to ssh to. If None,
@@ -1535,16 +1769,18 @@ def node_ssh_await(apiobj_node_name_or_qname=None,
 
     while True:
         try:
-            with node_ssh_client(apiobj_node_name_or_qname=apiobj_node_name_or_qname,
-                                 port=port,
-                                 username=username,
-                                 password=password,
-                                 key_filename=key_filename,
-                                 auto_add_host=auto_add_host,
-                                 connect_timeout=25,
-                                 through_client_host=through_client_host,
-                                 address_type_pref=address_type_pref,
-                                 paramiko_connect_extras=paramiko_connect_extras) as ssh_client:
+            with node_ssh_client(
+                apiobj_node_name_or_qname=apiobj_node_name_or_qname,
+                port=port,
+                username=username,
+                password=password,
+                key_filename=key_filename,
+                auto_add_host=auto_add_host,
+                connect_timeout=25,
+                through_client_host=through_client_host,
+                address_type_pref=address_type_pref,
+                paramiko_connect_extras=paramiko_connect_extras,
+            ) as ssh_client:
                 return
 
         except Exception as e:
@@ -1553,19 +1789,20 @@ def node_ssh_await(apiobj_node_name_or_qname=None,
                 raise
 
 
-def node_ssh_client_exec(apiobj_node_name_or_qname=None,
-                         cmd_str=None,
-                         stdin_str=None,
-                         port=22,
-                         username=None,
-                         password=None,
-                         key_filename=None,
-                         auto_add_host=True,
-                         connect_timeout=600,
-                         through_client_host=True,
-                         address_type_pref="ExternalDNS,ExternalIP,Hostname",
-                         paramiko_connect_extras=None,
-                         ):
+def node_ssh_client_exec(
+    apiobj_node_name_or_qname=None,
+    cmd_str=None,
+    stdin_str=None,
+    port=22,
+    username=None,
+    password=None,
+    key_filename=None,
+    auto_add_host=True,
+    connect_timeout=600,
+    through_client_host=True,
+    address_type_pref="ExternalDNS,ExternalIP,Hostname",
+    paramiko_connect_extras=None,
+):
     """
     Executes a single command on the remote host via ssh and returns rc, stdout, stderr. Closes the connection
     afterwards.
@@ -1588,16 +1825,18 @@ def node_ssh_client_exec(apiobj_node_name_or_qname=None,
     :return: rc, stdout, stderr
     """
 
-    with node_ssh_client(apiobj_node_name_or_qname=apiobj_node_name_or_qname,
-                         port=port,
-                         username=username,
-                         password=password,
-                         key_filename=key_filename,
-                         auto_add_host=auto_add_host,
-                         connect_timeout=connect_timeout,
-                         through_client_host=through_client_host,
-                         address_type_pref=address_type_pref,
-                         paramiko_connect_extras=paramiko_connect_extras) as ssh_client:
+    with node_ssh_client(
+        apiobj_node_name_or_qname=apiobj_node_name_or_qname,
+        port=port,
+        username=username,
+        password=password,
+        key_filename=key_filename,
+        auto_add_host=auto_add_host,
+        connect_timeout=connect_timeout,
+        through_client_host=through_client_host,
+        address_type_pref=address_type_pref,
+        paramiko_connect_extras=paramiko_connect_extras,
+    ) as ssh_client:
         ssh_stdin, ssh_stdout, ssh_stderr = ssh_client.exec_command(cmd_str)
 
         if stdin_str:
@@ -1605,8 +1844,8 @@ def node_ssh_client_exec(apiobj_node_name_or_qname=None,
             ssh_stdin.flush()
             ssh_stdin.channel.shutdown_write()
 
-        stdout = ssh_stdout.read().decode('utf-8', errors='ignore')
-        stderr = ssh_stderr.read().decode('utf-8', errors='ignore')
+        stdout = ssh_stdout.read().decode("utf-8", errors="ignore")
+        stderr = ssh_stderr.read().decode("utf-8", errors="ignore")
         return_code = ssh_stdout.channel.recv_exit_status()
 
         return return_code, stdout, stderr
@@ -1614,7 +1853,7 @@ def node_ssh_client_exec(apiobj_node_name_or_qname=None,
 
 """
 There is a small number of APIs that appear in an API Group that is specified as only
-an unclassified version, like "v1".  This is something specific to OpenShift V4, but 
+an unclassified version, like "v1".  This is something specific to OpenShift V4, but
 to be consistent, Im adding logic that handles this across versions.
 """
 SUPPORTED_SINGULAR_API_GROUP_SUFFIXES = ["v1"]
@@ -1622,7 +1861,7 @@ SUPPORTED_SINGULAR_API_GROUP_SUFFIXES = ["v1"]
 
 def _is_singular_api_group(group):
     for suffix in SUPPORTED_SINGULAR_API_GROUP_SUFFIXES:
-        if group.endswith('.{}'.format(suffix)):
+        if group.endswith(".{}".format(suffix)):
             return True
     return False
 
@@ -1635,11 +1874,11 @@ def get_gettable_kinds():
     """
     kinds = []
     for kind in naming.get_api_resources_kinds():
-        if '/' in kind:
-            kinds.append(kind.split('/')[0])
+        if "/" in kind:
+            kinds.append(kind.split("/")[0])
         else:
             if _is_singular_api_group(kind):
-                kinds.append(kind.split('.')[0])
+                kinds.append(kind.split(".")[0])
             else:
                 kinds.append(kind)
 

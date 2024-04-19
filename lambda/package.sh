@@ -7,4 +7,3 @@ rm -f $F
 
 pushd model
 zip -r $F python/*
-

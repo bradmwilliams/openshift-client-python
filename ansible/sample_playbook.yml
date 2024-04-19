@@ -56,4 +56,3 @@
             print('Phase for {} = {}'.format(pod_apiobj.qname(), pod_apiobj.model.status.phase))
 
           oc.selector({{pods}}).for_each(print_phase)
-

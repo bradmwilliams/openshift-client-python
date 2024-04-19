@@ -9,12 +9,19 @@ def get_kubeconfig():
     """
     :return: Returns the current kubeconfig as a python dict
     """
-    return json.loads(oc.invoke('config',
-                                cmd_args=['view',
-                                          '-o=json',
-                                          '--raw',
-                                          ],
-                                no_namespace=True).out().strip())
+    return json.loads(
+        oc.invoke(
+            "config",
+            cmd_args=[
+                "view",
+                "-o=json",
+                "--raw",
+            ],
+            no_namespace=True,
+        )
+        .out()
+        .strip()
+    )
 
 
 def _get_kubeconfig_model(_kc_model=None):
@@ -42,7 +49,7 @@ def get_kubeconfig_current_context_name(_kc_model=None):
     :return: Returns the name of the current context in your kubeconfig
     """
     kc = _get_kubeconfig_model(_kc_model=_kc_model)
-    return kc['current-context']
+    return kc["current-context"]
 
 
 def get_kubeconfig_context(context_name=None, _kc_model=None):
@@ -69,7 +76,9 @@ def get_kubeconfig_current_cluster_name(_kc_model=None):
     """
     kc = _get_kubeconfig_model(_kc_model=_kc_model)
     current_context_name = get_kubeconfig_current_context_name(_kc_model=kc)
-    return get_kubeconfig_context(context_name=current_context_name, _kc_model=kc)['cluster']
+    return get_kubeconfig_context(context_name=current_context_name, _kc_model=kc)[
+        "cluster"
+    ]
 
 
 def get_kubeconfig_cluster(cluster_name=None, _kc_model=None):
@@ -102,12 +111,15 @@ def set_kubeconfig_insecure_skip_tls_verify(active, cluster_name=None, _kc_model
     if not cluster_name:
         cluster_name = get_kubeconfig_current_cluster_name(_kc_model=_kc_model)
 
-    oc.invoke('config',
-              cmd_args=['set-cluster',
-                        cluster_name,
-                        '--insecure-skip-tls-verify={}'.format(str(active).lower()),
-                        ],
-              no_namespace=True)
+    oc.invoke(
+        "config",
+        cmd_args=[
+            "set-cluster",
+            cluster_name,
+            "--insecure-skip-tls-verify={}".format(str(active).lower()),
+        ],
+        no_namespace=True,
+    )
 
 
 def remove_kubeconfig_certifcate_authority(cluster_name=None, _kc_model=None):
@@ -122,10 +134,14 @@ def remove_kubeconfig_certifcate_authority(cluster_name=None, _kc_model=None):
         cluster_name = get_kubeconfig_current_cluster_name(_kc_model=_kc_model)
 
     # Setting insecure will remove any other certificate-authority data from the cluster's entry
-    set_kubeconfig_insecure_skip_tls_verify(True, cluster_name=cluster_name, _kc_model=_kc_model)
+    set_kubeconfig_insecure_skip_tls_verify(
+        True, cluster_name=cluster_name, _kc_model=_kc_model
+    )
 
     # Now set it back to false, removing the insecure-skip-tls-verify entry from kubeconfig
-    set_kubeconfig_insecure_skip_tls_verify(False, cluster_name=cluster_name, _kc_model=_kc_model)
+    set_kubeconfig_insecure_skip_tls_verify(
+        False, cluster_name=cluster_name, _kc_model=_kc_model
+    )
 
 
 def get_kubeconfig_certificate_authority_data(cluster_name=None, _kc_model=None):
@@ -142,7 +158,7 @@ def get_kubeconfig_certificate_authority_data(cluster_name=None, _kc_model=None)
         cluster_name = get_kubeconfig_current_cluster_name(_kc_model=kc)
 
     cluster_dict = get_kubeconfig_cluster(cluster_name, _kc_model=kc)
-    data = cluster_dict.get('certificate-authority-data', None)
+    data = cluster_dict.get("certificate-authority-data", None)
 
     if data:
         # the data is base64 encoded PEM, so decode it.
@@ -151,7 +167,9 @@ def get_kubeconfig_certificate_authority_data(cluster_name=None, _kc_model=None)
     return None
 
 
-def set_kubeconfig_certificate_authority_data(ca_data, cluster_name=None, _kc_model=None):
+def set_kubeconfig_certificate_authority_data(
+    ca_data, cluster_name=None, _kc_model=None
+):
     """
     Sets the certificate authority data for one or more clusters in the kubeconfig.
     :param ca_data: The certificate authority data (PEM format). The chain will be encoded into
@@ -176,10 +194,13 @@ def set_kubeconfig_certificate_authority_data(ca_data, cluster_name=None, _kc_mo
     b64_data = base64.b64encode(ca_data)
 
     # Now we can poke in the value that we need
-    oc.invoke('config',
-              # https://github.com/kubernetes/kubectl/issues/501#issuecomment-406890261
-              cmd_args=['set',
-                        'clusters.{}.certificate-authority-data'.format(cluster_name),
-                        b64_data
-                        ],
-              no_namespace=True)
+    oc.invoke(
+        "config",
+        # https://github.com/kubernetes/kubectl/issues/501#issuecomment-406890261
+        cmd_args=[
+            "set",
+            "clusters.{}.certificate-authority-data".format(cluster_name),
+            b64_data,
+        ],
+        no_namespace=True,
+    )

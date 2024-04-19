@@ -29,7 +29,7 @@ This document primarily serves as a reference for us to publish the openshift-cl
 
 ## Recommended Setup
 ### Create User Accounts
-To work with packaging, you will need to create user accounts on one or both of the following sites:  
+To work with packaging, you will need to create user accounts on one or both of the following sites:
 
 #### PyPI - The Python Package Index
 For **official** releases that are available for installation
@@ -39,7 +39,7 @@ For **official** releases that are available for installation
 For **testing** python packaging without impacting the official index
 * https://test.pypi.org/
 
-### Generate API Tokens 
+### Generate API Tokens
 For each account that you create, you can generate API Tokens that make publishing your packages/modules easier.  Once the tokens have been generated, you can add them to your `~/.pypirc` file:
 
 ```text
@@ -54,7 +54,7 @@ password = pypi-<API TOKEN>
 ```
 
 ## Building
-For openshift-client, build both a source distribution and a universal wheel: 
+For openshift-client, build both a source distribution and a universal wheel:
 ```bash
     python -m build
 ```
@@ -87,7 +87,7 @@ or
 ## Installation
 
 ### TestPyPI
-Installation from TestPyPI must be performed using one of the following methods: 
+Installation from TestPyPI must be performed using one of the following methods:
 
 1. Latest version
 ```bash
@@ -110,7 +110,7 @@ Installation from TestPyPI must be performed using one of the following methods:
 ```
 
 ## Cleanup
-If you're working on changes, you'll need to bump the version string for every publish to either index (releases are unique).  To cleanup the artifacts from previous builds, you can execute the following: 
+If you're working on changes, you'll need to bump the version string for every publish to either index (releases are unique).  To cleanup the artifacts from previous builds, you can execute the following:
 ```bash
     rm -rf dist/ packages/openshift_client.egg-info/ build/
 ```

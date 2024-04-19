@@ -18,21 +18,23 @@ def _normalize_object_list(ol):
     for qname in ol:
         kind, name = str(qname).split("/")
         kind = normalize_kind(kind)
-        new_ol.append('{}/{}'.format(kind, name))
+        new_ol.append("{}/{}".format(kind, name))
     return new_ol
 
 
 class Selector(Result):
-
-    def __init__(self, high_level_operation,
-                 kind_or_kinds_or_qname_or_qnames=None,
-                 labels=None,
-                 field_selectors=None,
-                 object_list=None,
-                 object_action=None,
-                 filter_func=None,
-                 all_namespaces=False,
-                 static_context=None):
+    def __init__(
+        self,
+        high_level_operation,
+        kind_or_kinds_or_qname_or_qnames=None,
+        labels=None,
+        field_selectors=None,
+        object_list=None,
+        object_action=None,
+        filter_func=None,
+        all_namespaces=False,
+        static_context=None,
+    ):
 
         super(self.__class__, self).__init__(high_level_operation)
 
@@ -50,7 +52,9 @@ class Selector(Result):
 
         if self.object_list is not None:
             if labels or kind_or_kinds_or_qname_or_qnames:
-                raise ValueError("Kind(s)/labels cannot be specified in conjunction with object_list")
+                raise ValueError(
+                    "Kind(s)/labels cannot be specified in conjunction with object_list"
+                )
             return
 
         if self.labels is not None:
@@ -81,7 +85,7 @@ class Selector(Result):
                     self.object_list = []
                     return
 
-                if '/' in first[0]:  # collection of kind/name assumed
+                if "/" in first[0]:  # collection of kind/name assumed
                     self.object_list = _normalize_object_list(first)
                 else:  # Assume collection of kinds
                     self.kinds = normalize_kinds(first)
@@ -113,53 +117,57 @@ class Selector(Result):
         if self.object_list is not None:
             return self.object_list
 
-        args.append(','.join(self.kinds))
+        args.append(",".join(self.kinds))
 
         if self.field_selectors:
-            sel = '--field-selector='
+            sel = "--field-selector="
             pairs = []
             for k, v in six.iteritems(self.field_selectors):
                 negate = False
-                if k.startswith('!'):
+                if k.startswith("!"):
                     # Strip the '!'
                     k = k[1:]
                     negate = True
 
                 if isinstance(v, bool):  # booleans in json/yaml need to be lowercase
-                    v = '{}'.format(v).lower()
+                    v = "{}".format(v).lower()
 
                 # field-selector supports = and !=
-                pairs.append('{}{}{}'.format(k, '!=' if negate else '=', v))
+                pairs.append("{}{}{}".format(k, "!=" if negate else "=", v))
 
-            sel += ','.join(pairs)
+            sel += ",".join(pairs)
             args.append(sel)
 
         if self.labels is not None:
-            sel = '--selector='
+            sel = "--selector="
             pairs = []
             for k, v in six.iteritems(self.labels):
 
                 negate = False
-                if k.startswith('!'):
+                if k.startswith("!"):
                     # Strip the '!'
                     k = k[1:]
                     negate = True
 
                 if isinstance(v, bool):  # booleans in json/yaml need to be lowercase
-                    v = '{}'.format(v).lower()
+                    v = "{}".format(v).lower()
 
-                if util.is_collection_type(v):  # if a list or tuple was supplied as the value, use in/notin
+                if util.is_collection_type(
+                    v
+                ):  # if a list or tuple was supplied as the value, use in/notin
                     # e.g. 'region in (us-east-1, us-east-2)'
-                    pairs.append('{} {} ({})'.format(k, 'notin' if negate else 'in', ','.join(v)))
+                    pairs.append(
+                        "{} {} ({})".format(k, "notin" if negate else "in", ",".join(v))
+                    )
                 elif v is not None:
-                    pairs.append('{}{}{}'.format(k, '!=' if negate else '=', v))
+                    pairs.append("{}{}{}".format(k, "!=" if negate else "=", v))
                 else:
                     # In this case, just search for existence. Logic seems reversed, but isn't.
                     #  { '!labelname' : None }    should check for existence; read as 'not labelname == None'
                     #  { 'labelname' : None }    should check for absence; read as 'labelname == None'
-                    pairs.append('{}{}'.format('' if negate else '!', k))
+                    pairs.append("{}{}".format("" if negate else "!", k))
 
-            sel += ','.join(pairs)
+            sel += ",".join(pairs)
             args.append(sel)
         elif needs_all:
             # e.g. "oc delete pods" will fail unless --all is specified
@@ -185,7 +193,7 @@ class Selector(Result):
 
         names = []
         for name in self.qnames():
-            names.append(name.split('/')[-1])
+            names.append(name.split("/")[-1])
 
         return names
 
@@ -199,16 +207,25 @@ class Selector(Result):
         qnames = self.qnames()
 
         if len(qnames) == 0:
-            raise OpenShiftPythonException("Expected single name, but selector returned no resources")
+            raise OpenShiftPythonException(
+                "Expected single name, but selector returned no resources"
+            )
 
         if len(qnames) > 1:
-            raise OpenShiftPythonException("Expected single name, but selector returned multiple resources")
+            raise OpenShiftPythonException(
+                "Expected single name, but selector returned multiple resources"
+            )
 
         return qnames[0]
 
     def raw_action(self, verb, *args, **kwargs):
-        return oc_action(self.context, verb, all_namespaces=self.all_namespaces,
-                         cmd_args=[self._selection_args(), args], **kwargs)
+        return oc_action(
+            self.context,
+            verb,
+            all_namespaces=self.all_namespaces,
+            cmd_args=[self._selection_args(), args],
+            **kwargs
+        )
 
     def _query_names(self):
 
@@ -218,8 +235,14 @@ class Selector(Result):
         """
 
         result = Result("query_names")
-        result.add_action(oc_action(self.context, 'get', all_namespaces=self.all_namespaces,
-                                    cmd_args=['-o=name', self._selection_args()]))
+        result.add_action(
+            oc_action(
+                self.context,
+                "get",
+                all_namespaces=self.all_namespaces,
+                cmd_args=["-o=name", self._selection_args()],
+            )
+        )
 
         # TODO: This check is necessary until --ignore-not-found is implemented and prevalent
         if result.status() != 0 and "(NotFound)" in result.err():
@@ -250,14 +273,22 @@ class Selector(Result):
                     ns.append(obj.qname())
         elif isinstance(kind_or_func, six.string_types):
             kind = normalize_kind(kind_or_func)
-            ns = [n for n in self.qnames() if (n.startswith(kind + "/") or n.startswith(kind + "."))]
+            ns = [
+                n
+                for n in self.qnames()
+                if (n.startswith(kind + "/") or n.startswith(kind + "."))
+            ]
         else:
-            raise ValueError("Don't know how to narrow with type: " + type(kind_or_func))
+            raise ValueError(
+                "Don't know how to narrow with type: " + type(kind_or_func)
+            )
 
-        s = Selector("narrow",
-                     object_list=ns,
-                     static_context=self.context,
-                     all_namespaces=self.all_namespaces)
+        s = Selector(
+            "narrow",
+            object_list=ns,
+            static_context=self.context,
+            all_namespaces=self.all_namespaces,
+        )
         return s
 
     def freeze(self):
@@ -271,12 +302,14 @@ class Selector(Result):
         """
 
         if self.all_namespaces:
-            raise ValueError('You cannot freeze all_namespaces selectors.')
+            raise ValueError("You cannot freeze all_namespaces selectors.")
 
-        return Selector("freeze",
-                        object_list=self.qnames(),
-                        static_context=self.context,
-                        all_namespaces=self.all_namespaces)
+        return Selector(
+            "freeze",
+            object_list=self.qnames(),
+            static_context=self.context,
+            all_namespaces=self.all_namespaces,
+        )
 
     def union(self, *args):
         """
@@ -294,10 +327,12 @@ class Selector(Result):
                 if not qname_matches(qname, new_set):
                     new_set.append(qname)
 
-        return Selector("union",
-                        object_list=new_set,
-                        static_context=self.context,
-                        all_namespaces=self.all_namespaces)
+        return Selector(
+            "union",
+            object_list=new_set,
+            static_context=self.context,
+            all_namespaces=self.all_namespaces,
+        )
 
     def intersect(self, *args):
         """
@@ -313,10 +348,12 @@ class Selector(Result):
                 if qname_matches(qname, to_intersect):
                     new_set.append(qname)
 
-        return Selector("intersect",
-                        object_list=new_set,
-                        static_context=self.context,
-                        all_namespaces=self.all_namespaces)
+        return Selector(
+            "intersect",
+            object_list=new_set,
+            static_context=self.context,
+            all_namespaces=self.all_namespaces,
+        )
 
     def subtract(self, with_selector):
         """
@@ -329,20 +366,24 @@ class Selector(Result):
             if not qname_matches(qname, to_subtract):
                 new_set.append(qname)
 
-        return Selector("subtract",
-                        object_list=new_set,
-                        static_context=self.context,
-                        all_namespaces=self.all_namespaces)
+        return Selector(
+            "subtract",
+            object_list=new_set,
+            static_context=self.context,
+            all_namespaces=self.all_namespaces,
+        )
 
     def subset(self, start=None, end=None):
         """
         :return: Returns a static selector which selects a subset of the receivers selection. Shorthand for
         oc.selector(receiver.qnames[start:end]).
         """
-        return Selector('subset',
-                        object_list=self.qnames()[start:end],
-                        static_context=self.context,
-                        all_namespaces=self.all_namespaces)
+        return Selector(
+            "subset",
+            object_list=self.qnames()[start:end],
+            static_context=self.context,
+            all_namespaces=self.all_namespaces,
+        )
 
     def count_existing(self):
         """
@@ -361,33 +402,33 @@ class Selector(Result):
 
         # If the selector is static and empty return an empty list object
         if self.object_list is not None and len(self.object_list) == 0:
-            return json.dumps({
-                "apiVersion": "v1",
-                "kind": "List",
-                "metadata": {},
-                "items": []
-            })
+            return json.dumps(
+                {"apiVersion": "v1", "kind": "List", "metadata": {}, "items": []}
+            )
 
         verb = "get"
 
-        cmd_args = ["-o=json",
-                    self._selection_args()]
+        cmd_args = ["-o=json", self._selection_args()]
 
         if ignore_not_found:
             cmd_args.append("--ignore-not-found")
 
         r = Result(verb)
-        r.add_action(oc_action(self.context, verb, all_namespaces=self.all_namespaces, cmd_args=cmd_args))
+        r.add_action(
+            oc_action(
+                self.context,
+                verb,
+                all_namespaces=self.all_namespaces,
+                cmd_args=cmd_args,
+            )
+        )
         r.fail_if("Unable to read object")
 
         # --ignore-not-found returns an empty string instead of an error if nothing is found
         if not r.out().strip():
-            return json.dumps({
-                "apiVersion": "v1",
-                "kind": "List",
-                "metadata": {},
-                "items": []
-            })
+            return json.dumps(
+                {"apiVersion": "v1", "kind": "List", "metadata": {}, "items": []}
+            )
 
         return r.out()
 
@@ -406,7 +447,9 @@ class Selector(Result):
                 return None
             raise OpenShiftPythonException("Expected a single object, but selected 0")
         elif len(objs) > 1:
-            raise OpenShiftPythonException("Expected a single object, but selected more than one")
+            raise OpenShiftPythonException(
+                "Expected a single object, but selected more than one"
+            )
 
         return objs[0]
 
@@ -430,16 +473,22 @@ class Selector(Result):
         return api_objects
 
     def start_build(self, cmd_args=None):
-        r = Selector('start_build')
+        r = Selector("start_build")
 
         # Have start-build output a list of objects it creates
         base_args = list()
         base_args.append("-o=name")
 
         for name in self.qnames():
-            r.add_action(oc_action(self.context, "start-build", cmd_args=[name, base_args, cmd_args]))
+            r.add_action(
+                oc_action(
+                    self.context, "start-build", cmd_args=[name, base_args, cmd_args]
+                )
+            )
 
-        r.fail_if("Error running start-build on at least one item: " + str(self.qnames()))
+        r.fail_if(
+            "Error running start-build on at least one item: " + str(self.qnames())
+        )
         r.object_list = split_names(r.out())
         return r
 
@@ -464,27 +513,47 @@ class Selector(Result):
         for obj in self.objects():
             key = obj.fqname()
             obj_dict = dict()
-            obj_dict['object'] = obj.as_dict()
-            obj_dict['describe'] = obj.describe(auto_raise=False)
+            obj_dict["object"] = obj.as_dict()
+            obj_dict["describe"] = obj.describe(auto_raise=False)
 
             # A report on something like a 'configmap' should not contain a logs
             # entry. So don't try longshots and don't include an entry if it doesn't support logs.
-            logs_dict = obj.logs(timestamps=timestamps, since=logs_since, try_longshots=try_longshots)
+            logs_dict = obj.logs(
+                timestamps=timestamps, since=logs_since, try_longshots=try_longshots
+            )
             if logs_dict:
-                obj_dict['logs'] = logs_dict
+                obj_dict["logs"] = logs_dict
             d[key] = obj_dict
 
         return d
 
-    def print_report(self, stream=sys.stderr, timestamps=True, logs_since=None, try_longshots=False):
+    def print_report(
+        self, stream=sys.stderr, timestamps=True, logs_since=None, try_longshots=False
+    ):
         """
         Pretty prints a report to an output stream (see report() method).
         :param stream: Output stream to send pretty printed report (defaults to sys.stderr)..
         :return: n/a
         """
-        util.print_report(stream, self.report(timestamps=timestamps, logs_since=logs_since, try_longshots=try_longshots))
+        util.print_report(
+            stream,
+            self.report(
+                timestamps=timestamps,
+                logs_since=logs_since,
+                try_longshots=try_longshots,
+            ),
+        )
 
-    def logs(self, timestamps=False, previous=False, since=None, limit_bytes=None, tail=-1, cmd_args=None, try_longshots=False):
+    def logs(
+        self,
+        timestamps=False,
+        previous=False,
+        since=None,
+        limit_bytes=None,
+        tail=-1,
+        cmd_args=None,
+        try_longshots=False,
+    ):
         """
         Builds a dict of logs for selected resources. Keys are fully qualified names for the source of the
         logs (format of this fqn is subject to change). Each value is the log extracted from the resource.
@@ -503,18 +572,49 @@ class Selector(Result):
         """
         d = {}
         for obj in self.objects():
-            d.update(obj.logs(timestamps=timestamps, previous=previous, since=since, limit_bytes=limit_bytes, tail=tail, try_longshots=try_longshots, cmd_args=cmd_args))
+            d.update(
+                obj.logs(
+                    timestamps=timestamps,
+                    previous=previous,
+                    since=since,
+                    limit_bytes=limit_bytes,
+                    tail=tail,
+                    try_longshots=try_longshots,
+                    cmd_args=cmd_args,
+                )
+            )
 
         return d
 
-    def print_logs(self, stream=sys.stderr, timestamps=False, previous=False, since=None, limit_bytes=None, tail=-1, try_longshots=False, cmd_args=None):
+    def print_logs(
+        self,
+        stream=sys.stderr,
+        timestamps=False,
+        previous=False,
+        since=None,
+        limit_bytes=None,
+        tail=-1,
+        try_longshots=False,
+        cmd_args=None,
+    ):
         """
         Pretty prints logs from selected objects to an output stream (see logs() method).
         :param stream: Output stream to send pretty printed logs (defaults to sys.stderr)..
         :param cmd_args: An optional list of additional arguments to pass on the command line
         :return: n/a
         """
-        util.print_logs(stream, self.logs(timestamps=timestamps, previous=previous, since=since, limit_bytes=limit_bytes, tail=tail, try_longshots=try_longshots, cmd_args=cmd_args))
+        util.print_logs(
+            stream,
+            self.logs(
+                timestamps=timestamps,
+                previous=previous,
+                since=since,
+                limit_bytes=limit_bytes,
+                tail=tail,
+                try_longshots=try_longshots,
+                cmd_args=cmd_args,
+            ),
+        )
 
     def describe(self, auto_raise=True, cmd_args=None):
         """
@@ -525,10 +625,16 @@ class Selector(Result):
         :return: A string containing the oc describe output.
         """
         r = Result("describe")
-        r.add_action(oc_action(self.context, "describe", all_namespaces=self.all_namespaces,
-                               cmd_args=[self._selection_args(), cmd_args]))
+        r.add_action(
+            oc_action(
+                self.context,
+                "describe",
+                all_namespaces=self.all_namespaces,
+                cmd_args=[self._selection_args(), cmd_args],
+            )
+        )
         if auto_raise:
-            r.fail_if('Error during describe')
+            r.fail_if("Error during describe")
 
         return (r.out() + "\n" + r.err()).strip()
 
@@ -552,8 +658,14 @@ class Selector(Result):
             base_args.append("--ignore-not-found")
         base_args.append("-o=name")
 
-        r.add_action(oc_action(self.context, "delete", all_namespaces=self.all_namespaces,
-                               cmd_args=[self._selection_args(needs_all=True), base_args, cmd_args]))
+        r.add_action(
+            oc_action(
+                self.context,
+                "delete",
+                all_namespaces=self.all_namespaces,
+                cmd_args=[self._selection_args(needs_all=True), base_args, cmd_args],
+            )
+        )
 
         r.fail_if("Error deleting objects")
         return split_names(r.out())
@@ -580,10 +692,16 @@ class Selector(Result):
                     l += "-"  # Indicate removal on command line if caller has not applied "-" suffix
                 base_args.append(l)
             else:
-                base_args.append('{}={}'.format(l, v))
+                base_args.append("{}={}".format(l, v))
 
-        r.add_action(oc_action(self.context, "label", all_namespaces=self.all_namespaces,
-                               cmd_args=[self._selection_args(needs_all=True), base_args, cmd_args]))
+        r.add_action(
+            oc_action(
+                self.context,
+                "label",
+                all_namespaces=self.all_namespaces,
+                cmd_args=[self._selection_args(needs_all=True), base_args, cmd_args],
+            )
+        )
 
         r.fail_if("Error running label")
         return self
@@ -609,10 +727,16 @@ class Selector(Result):
                     l += "-"  # Indicate removal on command line if caller has not applied "-" suffix
                 base_args.append(l)
             else:
-                base_args.append('{}={}'.format(l, v))
+                base_args.append("{}={}".format(l, v))
 
-        r.add_action(oc_action(self.context, "annotate", all_namespaces=self.all_namespaces,
-                               cmd_args=[self._selection_args(needs_all=True), base_args, cmd_args]))
+        r.add_action(
+            oc_action(
+                self.context,
+                "annotate",
+                all_namespaces=self.all_namespaces,
+                cmd_args=[self._selection_args(needs_all=True), base_args, cmd_args],
+            )
+        )
 
         r.fail_if("Error running annotate")
         return self
@@ -634,17 +758,29 @@ class Selector(Result):
     def scale(self, replicas, cmd_args=None):
         r = Result("scale")
         base_args = list()
-        base_args.append('--replicas={}'.format(replicas))
-        r.add_action(oc_action(self.context, "scale", all_namespaces=self.all_namespaces,
-                               cmd_args=[self._selection_args(needs_all=False), base_args, cmd_args]))
+        base_args.append("--replicas={}".format(replicas))
+        r.add_action(
+            oc_action(
+                self.context,
+                "scale",
+                all_namespaces=self.all_namespaces,
+                cmd_args=[self._selection_args(needs_all=False), base_args, cmd_args],
+            )
+        )
 
         r.fail_if("Error running scale")
         return self
 
-    def until_any(self, min_to_satisfy=1,
-                  success_func=None, tolerate_failures=0, failure_func=None,
-                  auto_raise=False,
-                  *args, **kwargs):
+    def until_any(
+        self,
+        min_to_satisfy=1,
+        success_func=None,
+        tolerate_failures=0,
+        failure_func=None,
+        auto_raise=False,
+        *args,
+        **kwargs
+    ):
         """
         Polls the server until at least min_to_satisfy resources satisfies a user specified
         success condition or until more than tolerate_failures are detected.
@@ -687,7 +823,7 @@ class Selector(Result):
 
                 if len(failed_by) > tolerate_failures:
                     if auto_raise:
-                        raise OpenShiftPythonException('Failure(s) during until_any')
+                        raise OpenShiftPythonException("Failure(s) during until_any")
 
                     return False, failed_by, objs
 
@@ -700,7 +836,16 @@ class Selector(Result):
             time.sleep(poll_period)
             poll_period = min(poll_period + 1, 15)
 
-    def until_all(self, min_exist=1, success_func=None, tolerate_failures=0, failure_func=None, auto_raise=False, *args, **kwargs):
+    def until_all(
+        self,
+        min_exist=1,
+        success_func=None,
+        tolerate_failures=0,
+        failure_func=None,
+        auto_raise=False,
+        *args,
+        **kwargs
+    ):
         """
         Waits until the API returns at least min_exist resources and then
         polls the server until ALL selected resources satisfy a user specified
@@ -757,7 +902,7 @@ class Selector(Result):
 
                 if len(failed_by) > tolerate_failures:
                     if auto_raise:
-                        raise OpenShiftPythonException('Failure(s) during until_all')
+                        raise OpenShiftPythonException("Failure(s) during until_all")
                     return False, failed_by, objs
 
                 if len(satisfied_by) == len(objs):
@@ -767,8 +912,13 @@ class Selector(Result):
             poll_period = min(poll_period + 1, 15)
 
 
-def selector(kind_or_kinds_or_qname_or_qnames=None, labels=None,
-             field_selectors=None, all_namespaces=False, static_context=None):
+def selector(
+    kind_or_kinds_or_qname_or_qnames=None,
+    labels=None,
+    field_selectors=None,
+    all_namespaces=False,
+    static_context=None,
+):
     """
     selector( "kind" )
     selector( "kind", labels={ 'k': 'v' } )
@@ -791,6 +941,11 @@ def selector(kind_or_kinds_or_qname_or_qnames=None, labels=None,
     :return: A Selector object
     :rtype: Selector
     """
-    return Selector("selector", kind_or_kinds_or_qname_or_qnames, labels=labels,
-                    field_selectors=field_selectors,
-                    all_namespaces=all_namespaces, static_context=static_context)
+    return Selector(
+        "selector",
+        kind_or_kinds_or_qname_or_qnames,
+        labels=labels,
+        field_selectors=field_selectors,
+        all_namespaces=all_namespaces,
+        static_context=static_context,
+    )

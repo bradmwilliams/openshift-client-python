@@ -48,8 +48,8 @@ locally OR (2) ssh to a host and invoke `oc`, you can use the library.
 
 Cons:
 - This API is not intended to implement something as complex as a controller. For example, it does not implement
-watch functionality. If you can't imagine accomplishing your use case through CLI interactions, this API is probably 
-not the right starting point for it. 
+watch functionality. If you can't imagine accomplishing your use case through CLI interactions, this API is probably
+not the right starting point for it.
 - If you care about whether a REST API returns a particular error code, this API is probably not for you. Since it
 is based on the CLI, high level return codes are used to determine success or failure.
 
@@ -102,22 +102,22 @@ print('OpenShift server version: {}'.format(oc.get_server_version()))
 with oc.project('openshift-infra'), oc.timeout(10*60):
     # Print the list of qualified pod names (e.g. ['pod/xyz', 'pod/abc', ...]  in the current project
     print('Found the following pods in {}: {}'.format(oc.get_project_name(), oc.selector('pods').qnames()))
-    
+
     # Read in the current state of the pod resources and represent them as python objects
     for pod_obj in oc.selector('pods').objects():
-        
+
         # The APIObject class exposes several convenience methods for interacting with objects
         print('Analyzing pod: {}'.format(pod_obj.name()))
         pod_obj.print_logs(timestamps=True, tail=15)
-    
+
         # If you need access to the underlying resource definition, get a Model instance for the resource
         pod_model = pod_obj.model
-        
+
         # Model objects enable dot notation and allow you to navigate through resources
         # to an arbitrary depth without checking if any ancestor elements exist.
         # In the following example, there is no need for boilerplate like:
         #    `if .... 'ownerReferences' in pod_model['metadata'] ....`
-        # Fields that do not resolve will always return oc.Missing which 
+        # Fields that do not resolve will always return oc.Missing which
         # is a singleton and can also be treated as an empty dict.
         for owner in pod_model.metadata.ownerReferences:  # ownerReferences == oc.Missing if not present in resource
             # elements of a Model are also instances of Model or ListModel
@@ -315,7 +315,7 @@ with oc.tracking() as tracker:
         print('Current user: {}'.format(oc.whoami()))
     except:
         print('Error acquiring current username')
-    
+
     # Print out details about the invocations made within this context.
     print(tracker.get_result())
 ```
@@ -323,47 +323,47 @@ with oc.tracking() as tracker:
 In this case, the tracking output would look something like:
 ```json
 {
-    "status": 0, 
-    "operation": "tracking", 
+    "status": 0,
+    "operation": "tracking",
     "actions": [
         {
-            "status": 0, 
-            "verb": "project", 
-            "references": {}, 
-            "in": null, 
-            "out": "aos-cd\n", 
-            "err": "", 
+            "status": 0,
+            "verb": "project",
+            "references": {},
+            "in": null,
+            "out": "aos-cd\n",
+            "err": "",
             "cmd": [
-                "oc", 
-                "project", 
+                "oc",
+                "project",
                 "-q"
-            ], 
-            "elapsed_time": 0.15344810485839844, 
-            "internal": false, 
-            "timeout": false, 
+            ],
+            "elapsed_time": 0.15344810485839844,
+            "internal": false,
+            "timeout": false,
             "last_attempt": true
-        }, 
+        },
         {
-            "status": 0, 
-            "verb": "whoami", 
-            "references": {}, 
-            "in": null, 
-            "out": "aos-ci-jenkins\n", 
-            "err": "", 
+            "status": 0,
+            "verb": "whoami",
+            "references": {},
+            "in": null,
+            "out": "aos-ci-jenkins\n",
+            "err": "",
             "cmd": [
-                "oc", 
+                "oc",
                 "whoami"
-            ], 
-            "elapsed_time": 0.6328380107879639, 
-            "internal": false, 
-            "timeout": false, 
+            ],
+            "elapsed_time": 0.6328380107879639,
+            "internal": false,
+            "timeout": false,
             "last_attempt": true
         }
     ]
 }
 ```
 
-Alternatively, you can record actions yourself by passing an action_handler to the tracking 
+Alternatively, you can record actions yourself by passing an action_handler to the tracking
 contextmanager. Your action handler will be invoked each time an `oc` invocation completes.
 
 ```python
@@ -381,8 +381,8 @@ with oc.tracking(action_handler=print_action):
 
 ### Time limits
 Have a script you want to ensure succeeds or fails within a specific period of time? Use
-a `timeout` context. Timeout contexts can be nested - if any timeout context expires, 
-the current oc invocation will be killed. 
+a `timeout` context. Timeout contexts can be nested - if any timeout context expires,
+the current oc invocation will be killed.
 
 ```python
 #!/usr/bin/python
@@ -400,23 +400,23 @@ print("Waiting for up to 15 minutes for at least 6 nodes to be ready...")
 with oc.timeout(15 * 60):
     oc.selector('nodes').until_all(6, success_func=node_is_ready)
     print("All detected nodes are reporting ready")
-```        
+```
 
 You will be able to see in `tracking` context results that a timeout occurred for an affected
 invocation. The `timeout` field will be set to `True`.
 
 ### Advanced contexts
-If you are unable to use a KUBECONFIG environment variable or need fine grained control over the 
-server/credentials you communicate with for each invocation, use openshift-client-python contexts. 
-Contexts can be nested and cause oc invocations within them to use the most recently established 
+If you are unable to use a KUBECONFIG environment variable or need fine grained control over the
+server/credentials you communicate with for each invocation, use openshift-client-python contexts.
+Contexts can be nested and cause oc invocations within them to use the most recently established
 context information.
 
 ```python
 with oc.api_server('https:///....'):  # use the specified api server for nested oc invocations.
-    
+
     with oc.token('abc..'):  # --server=... --token=abc... will be included in inner oc invocations.
         print("Current project: " + oc.get_project_name())
-    
+
     with oc.token('def..'):  # --server=... --token=def... will be included in inner oc invocations.
         print("Current project: " + oc.get_project_name())
 ```
@@ -425,19 +425,19 @@ You can control the loglevel specified  for `oc` invocations.
 ```python
 with oc.loglevel(6):
    # all oc invocations within this context will be invoked with --loglevel=6
-    oc...   
+    oc...
 ```
 
 You ask `oc` to skip TLS verification if necessary.
 ```python
 with oc.tls_verify(enable=False):
    # all oc invocations within this context will be invoked with --insecure-skip-tls-verify
-    oc...   
+    oc...
 ```
 
 ### Something missing?
-Most common API iterations have abstractions, but if there is no openshift-client-python API 
-exposing the `oc` function you want to run, you can always use `oc.invoke` to directly pass arguments to 
+Most common API iterations have abstractions, but if there is no openshift-client-python API
+exposing the `oc` function you want to run, you can always use `oc.invoke` to directly pass arguments to
 an `oc` invocation on your host.
 
 ```python
@@ -489,7 +489,7 @@ time="2018-10-22T21:07:36Z" level=info msg=" - arp" source="node_exporter.go:97"
 ...
 ```
 
-Note that these logs are held in memory. Use tail or other available method parameters to ensure 
+Note that these logs are held in memory. Use tail or other available method parameters to ensure
 predictable and efficient results.
 
 To simplify even further, you can ask the library to pretty-print the logs for you:
@@ -497,14 +497,14 @@ To simplify even further, you can ask the library to pretty-print the logs for y
 oc.selector(['daemonset', 'deployment']).print_logs()
 ```
 
-And to quickly pull together significant diagnostic data on selected objects, use `report()` or `print_report()`. 
+And to quickly pull together significant diagnostic data on selected objects, use `report()` or `print_report()`.
 A report includes the following information for each selected object, if available:
 - `object` - The current state of the object.
 - `describe` - The output of describe on the object.
-- `logs` - If applicable, a map of logs -- one of each container associated with the object. 
+- `logs` - If applicable, a map of logs -- one of each container associated with the object.
 
 ```python
-# Pretty-print a detail set of data about all deploymentconfigs, builds, and configmaps in the 
+# Pretty-print a detail set of data about all deploymentconfigs, builds, and configmaps in the
 # current namespace context.
 oc.selector(['dc', 'build', 'configmap']).print_report()
 ```
@@ -544,8 +544,8 @@ Pods running on node: node/ip-172-31-18-183.ca-central-1.compute.internal
 - [Some unit tests](examples/cluster_tests.py)
 
 ## Environment Variables
-To allow openshift-client-python applications to be portable between environments without needing to be modified, 
-you can specify many default contexts in the environment. 
+To allow openshift-client-python applications to be portable between environments without needing to be modified,
+you can specify many default contexts in the environment.
 
 ### Defaults when invoking `oc`
 Establishing explicit contexts within an application will override these environment defaults.
@@ -564,14 +564,14 @@ not included explicit timeout contexts. Like any `timeout` context, this value i
 by subsequent `timeout` contexts within the application. It provides an upper bound for the entire
 application's oc interactions.
 
-- `OPENSHIFT_CLIENT_PYTHON_MASTER_TIMEOUT` 
+- `OPENSHIFT_CLIENT_PYTHON_MASTER_TIMEOUT`
 
 ### SSH Client Host
-In some cases, it is desirable to run an openshift-client-python application using a local `oc` binary and 
+In some cases, it is desirable to run an openshift-client-python application using a local `oc` binary and
 in other cases, the `oc` binary resides on a remote client. Encoding this decision in the application
 itself is unnecessary.
 
-Simply wrap you application in a `client_host` context without arguments. This will try to pull 
+Simply wrap you application in a `client_host` context without arguments. This will try to pull
 client host information from environment variables if they are present. If they are not present,
 the application will execute on the local host.
 
@@ -580,7 +580,7 @@ in the environment. Otherwise, `oc` interactions will be executed on the host ru
 
 ```python
 with oc.client_host():  # if OPENSHIFT_CLIENT_PYTHON_DEFAULT_SSH_HOSTNAME if not defined in the environment, this is a no-op
-    print( 'Found nodes: {}'.format(oc.selector('nodes').qnames()) ) 
+    print( 'Found nodes: {}'.format(oc.selector('nodes').qnames()) )
 ```
 
 - `OPENSHIFT_CLIENT_PYTHON_DEFAULT_SSH_HOSTNAME` - The hostname on which the `oc` binary resides

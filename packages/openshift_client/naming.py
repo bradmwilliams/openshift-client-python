@@ -13,8 +13,9 @@ _api_resources = list()
 
 
 class APIResource:
-
-    def __init__(self, name, group, kind, namespaced, shortnames=None, handle_apiversion=False):
+    def __init__(
+        self, name, group, kind, namespaced, shortnames=None, handle_apiversion=False
+    ):
         self.name = name
         self.kind = kind
         self.group = self._process_api_value(group, handle_apiversion)
@@ -26,7 +27,7 @@ class APIResource:
         self.shortnames = shortnames
 
         if group:
-            self.full_name = '{}.{}'.format(name, group)
+            self.full_name = "{}.{}".format(name, group)
         else:
             self.full_name = name
 
@@ -34,8 +35,8 @@ class APIResource:
     def _process_api_value(value, handle_apiversion):
         if value:
             if handle_apiversion:
-                if '/' in value:
-                    group = value.split('/')[0]
+                if "/" in value:
+                    group = value.split("/")[0]
                     return group
             return value
         return None
@@ -63,12 +64,14 @@ def get_api_resources_kinds():
 
     # until https://bugzilla.redhat.com/show_bug.cgi?id=1684311 fixed
     ungettable = set()
-    ungettable.update("""
+    ungettable.update(
+        """
 rangeallocations.security.openshift.io
 rangeallocations.security.openshift.io/v1
 useridentitymappings.user.openshift.io
 useridentitymappings.user.openshift.io/v1
-""".strip().split())
+""".strip().split()
+    )
 
     return kinds.difference(ungettable)
 
@@ -84,7 +87,7 @@ def normalize_kind(kind):
     kind = kind.strip().lower()
 
     # if a fully qualified kind is supplied, don't assume we know better
-    if '.' in kind:
+    if "." in kind:
         return kind
 
     # if the kind is in the dict, we are done
@@ -127,7 +130,7 @@ def kind_matches(k1, k2_or_list):
 
     for k2e in k2_or_list:
         k2e = normalize_kind(k2e)
-        if k1 == k2e or k1.startswith(k2e + '.') or k2e.startswith(k1 + '.'):
+        if k1 == k2e or k1.startswith(k2e + ".") or k2e.startswith(k1 + "."):
             return True
 
     return False
@@ -160,9 +163,9 @@ def qualify_name(name_or_qname, to_kind):
     :return: A qualified name like: kind/name
     """
 
-    if '/' in name_or_qname:
-        name_or_qname = name_or_qname.split('/')[-1]
-    return '{}/{}'.format(to_kind, name_or_qname)
+    if "/" in name_or_qname:
+        name_or_qname = name_or_qname.split("/")[-1]
+    return "{}/{}".format(to_kind, name_or_qname)
 
 
 def split_fqn(fqn, default_name=None, default_kind=None, default_namespace=None):
@@ -172,14 +175,14 @@ def split_fqn(fqn, default_name=None, default_kind=None, default_namespace=None)
     """
     remainder = fqn
     ns = default_namespace
-    if ':' in remainder:
-        ns_test, remainder = remainder.split(':', 1)
+    if ":" in remainder:
+        ns_test, remainder = remainder.split(":", 1)
         if ns_test:
             ns = ns_test
 
     kind = default_kind
-    if '/' in remainder:
-        kind_test, remainder = remainder.split('/', 1)
+    if "/" in remainder:
+        kind_test, remainder = remainder.split("/", 1)
         if kind_test:
             kind = kind_test
 
@@ -215,26 +218,30 @@ def process_api_resources_output(output):
     # throw the IOError below and exit immediately.  Because not everyone may be using the latest/greatest
     # version of `oc`, at this point in time, I'm adding support to handle the output from BOTH versions.
     handle_apiversion = False
-    api_column_name = 'apigroup'
+    api_column_name = "apigroup"
 
-    if 'apiversion' in header:
+    if "apiversion" in header:
         handle_apiversion = True
-        api_column_name = 'apiversion'
+        api_column_name = "apiversion"
 
-    column_names = ['name', 'shortnames', api_column_name, 'namespaced', 'kind']
+    column_names = ["name", "shortnames", api_column_name, "namespaced", "kind"]
 
     for column_name in column_names:
         pos = header.find(column_name)
         if pos == -1:
-            raise IOError('Unable to find column: {} in api-resource output'.format(column_name.upper()))
+            raise IOError(
+                "Unable to find column: {} in api-resource output".format(
+                    column_name.upper()
+                )
+            )
         column_pos[column_name] = pos
 
     def get_column_value(line, column_name):
         # jump to where this column starts and copy up to the end of the line
-        start = line[column_pos[column_name]:]
+        start = line[column_pos[column_name] :]
         # if there is a space at this column position, the column has no value
-        if start.startswith(' '):
-            return ''
+        if start.startswith(" "):
+            return ""
         # otherwise, split on whitespace and use the first value we find
         val = start.split()[0].strip()
         return val
@@ -246,11 +253,11 @@ def process_api_resources_output(output):
             if not line:
                 continue
             res = APIResource(
-                name=get_column_value(line, 'name'),
+                name=get_column_value(line, "name"),
                 group=get_column_value(line, api_column_name),
-                kind=get_column_value(line, 'kind'),
-                namespaced='t' in get_column_value(line, 'namespaced').lower(),
-                shortnames=get_column_value(line, 'shortnames').split(','),
+                kind=get_column_value(line, "kind"),
+                namespaced="t" in get_column_value(line, "namespaced").lower(),
+                shortnames=get_column_value(line, "shortnames").split(","),
                 handle_apiversion=handle_apiversion,
             )
             register_api_resource(res)
